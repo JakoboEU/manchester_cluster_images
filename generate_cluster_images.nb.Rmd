@@ -16,7 +16,7 @@ library(purrr)
 
 Constants
 ```{r}
-IMAGE_DIRECTORY="../survey_site_images"
+IMAGE_DIRECTORY="/Users/james/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
 ```
 
 Input
@@ -57,7 +57,8 @@ bird_cluster_json = read_input_json(BIRD_CLUSTERS)
 
 row_to_df = function(x) {
   tibble(
-    cluster_id = x$cluster_id,
+    cluster_id = as.integer(x$cluster_id),
+    cluster_name = x$cluster_name,
     cluster_description = x$cluster_description,
     habitat_description_from_photos = x$habitat_description_from_photos,
     representative_plot_image = x$representative_plot_image
@@ -131,12 +132,13 @@ species_list = function(species_list, indicator_species, cluster_id) {
     dplyr::select(species, paste('s.', cluster_id, sep = ''), p.value, number_plots, total_plots) %>%
     rename(cluster_indicator=paste('s.', cluster_id, sep = '')) %>%
     mutate(indicator_flag = ifelse(cluster_indicator == 1 & !is.na(p.value), '*', '')) %>%
-    mutate(generalist_flag = ifelse(is.na(p.value), 'G', '')) %>%
+    mutate(generalist_flag = ifelse(is.na(p.value), '[G]', '')) %>%
     mutate(species = gsub("_", " ", species)) %>%
     mutate(label = paste(species, indicator_flag, generalist_flag)) %>%
     mutate(presence = paste(number_plots, '/', total_plots, sep = '')) %>%
     arrange(desc(indicator_flag), desc(generalist_flag), species) %>%
-    dplyr::select(label, presence)
+    dplyr::select(label, presence) %>%
+    rename(Species=label, Plots=presence)
 }
 
 test_cluster_id = 4
@@ -150,4 +152,201 @@ plant_species_list = function(cluster_id) species_list(plant_species_in_cluster(
 bird_species_list = function(cluster_id) species_list(bird_species_in_cluster(cluster_id), bird_indicator_species, cluster_id)
 
 plant_species_list(3)
+```
+
+# Print image
+```{r}
+show_image = function(plot_id) {
+  image_file = paste(sub(' ', '_', plot_id), 'jpg', sep = '.')
+  full_image_file = paste(IMAGE_DIRECTORY, image_file, sep = '/')
+  p2 =  rectGrob(gp = gpar(fill = "lightblue"))
+  if (file.exists(full_image_file)) {
+    survey_site_image = jpeg::readJPEG(full_image_file)
+    p2 = rasterGrob(survey_site_image, interpolate = TRUE)
+  }
+  p2
+}
+
+grid_show_image = function(selected_plot) {
+  grid::grid.newpage()
+  grid.draw(show_image(selected_plot))
+}
+
+grid_show_image('420 9')
+```
+
+```{r}
+draw_dataframe <- function(df, digits = 2, base_size = 10, pad_mm = 2) {
+  stopifnot(is.data.frame(df))
+
+  # format numbers; keep other columns as plain text
+  df_fmt <- lapply(df, function(x) {
+    if (is.numeric(x)) {
+      formatC(x, format = "f", digits = digits)
+    } else if (is.factor(x)) {
+      as.character(x)
+    } else {
+      x
+    }
+  })
+  df_fmt <- as.data.frame(df_fmt, stringsAsFactors = FALSE)
+
+  tg <- gridExtra::tableGrob(
+    df_fmt,
+    rows = NULL,
+    theme = gridExtra::ttheme_minimal(
+      base_size = base_size,
+      core   = list(padding = unit(c(pad_mm, pad_mm), "mm")),
+      colhead= list(fg_params = list(fontface = 2),
+                    padding  = unit(c(pad_mm, pad_mm), "mm"))
+    )
+  )
+
+  # make columns share available width evenly
+  tg$widths <- unit(rep(1, length(tg$widths)), "null")
+  tg
+}
+```
+
+```{r}
+grid.arrange(draw_dataframe(bird_species_list(2)))
+```
+
+```{r}
+description_grob = function(desc, cex = 1.2) {
+  wrapped = paste(strwrap(desc, width = 200), collapse = "\n")
+  desc_grob = textGrob(
+    wrapped,
+    x = 0.05, hjust = 0,            # left-align
+    gp = gpar(cex = cex, lineheight = 1.1)
+  )
+  grobTree(desc_grob, vp = viewport(clip = "on"))
+}
+
+show_insect_plant_representation = function(r_cluster_id) {
+  grid::grid.newpage()
+  
+  cluster_def = insect_plant_clusters %>% filter(cluster_id == r_cluster_id)
+  
+  insect_grob = draw_dataframe(insect_b_species_list(r_cluster_id), base_size = 10)
+  plant_grob = draw_dataframe(plant_species_list(r_cluster_id), base_size = 10)
+
+  maxHeight = unit.pmax(insect_grob$heights, plant_grob$heights)
+  insect_grob$heights = maxHeight
+  plant_grob$heights = maxHeight
+
+  presence_grob = arrangeGrob(insect_grob, plant_grob, ncol = 2)
+    
+  group_r = arrangeGrob(
+    description_grob(cluster_def %>% dplyr::select(cluster_name) %>% unlist(), cex=3),
+    show_image(cluster_def %>% dplyr::select(representative_plot_image) %>% unlist()), 
+    description_grob(cluster_def %>% dplyr::select(cluster_description) %>% unlist()), 
+    description_grob(cluster_def %>% dplyr::select(habitat_description_from_photos) %>% unlist()), 
+    presence_grob,
+    ncol = 1, heights = c(1, 10, 0.5, 1.5, 8))
+  
+  show_rep_image = function(plotId) {
+    show_image(plotId)
+  }
+  
+  plot_ids = plots_in_cluster_insect_plants(r_cluster_id)
+  grobs = lapply(plot_ids$plots, show_rep_image)
+  replacements =  arrangeGrob(grobs = do.call(grid::gList, grobs), ncol = 4)
+  
+  grid.arrange(group_r, replacements, ncol = 2)
+}
+```
+
+
+```{r}
+to_output_file = function(cluster_type, cluster_id) {
+  paste('output', paste(paste(cluster_type, cluster_id, sep = '_'), 'jpg', sep = '.'), sep = '/')
+}
+
+jpeg(filename=to_output_file('insects_and_plants', 1), width = 3000, height = 2000)
+show_insect_plant_representation(1)
+dev.off()
+```
+
+```{r}
+jpeg(filename=to_output_file('insects_and_plants', 2), width = 3000, height = 2000)
+show_insect_plant_representation(2)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 3), width = 3000, height = 2000)
+show_insect_plant_representation(3)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 4), width = 3000, height = 2000)
+show_insect_plant_representation(5)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 5), width = 3000, height = 2000)
+show_insect_plant_representation(5)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 6), width = 3000, height = 2000)
+show_insect_plant_representation(6)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 7), width = 3000, height = 2000)
+show_insect_plant_representation(7)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 8), width = 3000, height = 2000)
+show_insect_plant_representation(8)
+dev.off()
+jpeg(filename=to_output_file('insects_and_plants', 0), width = 3000, height = 2000)
+show_insect_plant_representation(0)
+dev.off()
+```
+
+```{r}
+show_bird_representation = function(r_cluster_id) {
+  grid::grid.newpage()
+  
+  cluster_def = bird_clusters %>% filter(cluster_id == r_cluster_id)
+    
+  group_r = arrangeGrob(
+    description_grob(cluster_def %>% dplyr::select(cluster_name) %>% unlist(), cex=3),
+    show_image(cluster_def %>% dplyr::select(representative_plot_image) %>% unlist()), 
+    description_grob(cluster_def %>% dplyr::select(cluster_description) %>% unlist()), 
+    description_grob(cluster_def %>% dplyr::select(habitat_description_from_photos) %>% unlist()), 
+    draw_dataframe(bird_species_list(r_cluster_id), base_size = 10),
+    ncol = 1, heights = c(1, 10, 0.5, 1.5, 8))
+  
+  show_rep_image = function(plotId) {
+    show_image(plotId)
+  }
+  
+  plot_ids = plots_in_cluster_birds(r_cluster_id)
+  grobs = lapply(plot_ids$plots, show_rep_image)
+  replacements =  arrangeGrob(grobs = do.call(grid::gList, grobs), ncol = 4)
+  
+  grid.arrange(group_r, replacements, ncol = 2)
+}
+```
+
+```{r}
+jpeg(filename=to_output_file('birds', 0), width = 3000, height = 2000)
+show_bird_representation(0)
+dev.off()
+jpeg(filename=to_output_file('birds', 1), width = 3000, height = 2000)
+show_bird_representation(1)
+dev.off()
+jpeg(filename=to_output_file('birds', 2), width = 3000, height = 2000)
+show_bird_representation(2)
+dev.off()
+jpeg(filename=to_output_file('birds', 3), width = 3000, height = 2000)
+show_bird_representation(3)
+dev.off()
+jpeg(filename=to_output_file('birds', 4), width = 3000, height = 2000)
+show_bird_representation(5)
+dev.off()
+jpeg(filename=to_output_file('birds', 5), width = 3000, height = 2000)
+show_bird_representation(5)
+dev.off()
+jpeg(filename=to_output_file('birds', 6), width = 3000, height = 2000)
+show_bird_representation(6)
+dev.off()
+jpeg(filename=to_output_file('birds', 7), width = 3000, height = 2000)
+show_bird_representation(7)
+dev.off()
+jpeg(filename=to_output_file('birds', 8), width = 3000, height = 2000)
+show_bird_representation(8)
+dev.off()
 ```
