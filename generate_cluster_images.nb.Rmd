@@ -1,0 +1,153 @@
+---
+title: "Generate images of cluster sites"
+output: html_notebook
+---
+
+Libraries
+```{r}
+library(dplyr)
+library(tidyverse)
+library(rjson)
+library(grid)
+library(gridExtra)
+library(tibble)
+library(purrr)
+```
+
+Constants
+```{r}
+IMAGE_DIRECTORY="../survey_site_images"
+```
+
+Input
+```{r}
+INPUT_DIR = 'input'
+
+INSECT_PLANT_CLUSTERS = 'insect-plant-clusters.json'
+BIRD_CLUSTERS = 'bird-clusters.json'
+
+input_file = function(filename) {
+  paste('.', INPUT_DIR, filename, sep = '/')
+}
+
+read_input_json = function(filename) {
+  fromJSON(paste(readLines(input_file(filename)), collapse=""))
+}
+```
+
+```{r}
+INSECT_A_INDICATOR_SPECIES = 'insect_indicator_species_9.csv'
+INSECT_B_INDICATOR_SPECIES = 'insect_no_non_species_indicator_species_9.csv'
+
+PLANT_INDICATOR_SPECIES = 'plant_indicator_species_9.csv'
+BIRD_INDICATOR_SPECIES = 'bird_indicator_species_9.csv'
+
+read_input_csv = function(filename) {
+  read_csv(input_file(filename))
+}
+```
+
+
+# Load datasets
+
+## Load cluster data
+```{r}
+insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
+bird_cluster_json = read_input_json(BIRD_CLUSTERS)
+
+row_to_df = function(x) {
+  tibble(
+    cluster_id = x$cluster_id,
+    cluster_description = x$cluster_description,
+    habitat_description_from_photos = x$habitat_description_from_photos,
+    representative_plot_image = x$representative_plot_image
+  )
+}
+
+insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
+insect_plant_clusters
+```
+
+
+```{r}
+bird_clusters = map_dfr(bird_cluster_json, row_to_df)
+bird_clusters
+```
+
+
+```{r}
+plots_in_cluster = function(cluster_json, cluster_id) {
+  idx = which(sapply(cluster_json, function(x) x$cluster_id) == cluster_id)
+  if (length(idx) == 0) return(NULL)
+  cluster_json[[idx]]['plots']
+}
+
+plots_in_cluster_insect_plants = function(cluster_id) plots_in_cluster(insect_plant_cluster_json, cluster_id)
+plots_in_cluster_birds = function(cluster_id) plots_in_cluster(bird_cluster_json, cluster_id)
+
+plots_in_cluster_insect_plants(8)
+```
+# Load Survey Data
+```{r}
+INSECT_PRESENCE = 'insect-presence.csv'
+PLANT_PRESENCE = 'plant-presence.csv'
+BIRD_PRESENCE = 'bird-presence.csv'
+
+insect_a_presence = read_input_csv(INSECT_PRESENCE)
+insect_b_presence = insect_a_presence %>% filter(!str_starts(species, "Any_"))
+plant_presence = read_input_csv(PLANT_PRESENCE)
+bird_presence = read_input_csv(BIRD_PRESENCE)
+
+species_in_plots = function(species_presence, plot_list) {
+  species_presence %>% 
+    filter(title %in% plot_list$plots) %>% 
+    group_by(species) %>% 
+    summarise(number_plots = n()) %>%
+    mutate(total_plots = length(plot_list$plots))
+}
+
+insect_a_species_in_cluster = function(cluster_id) species_in_plots(insect_a_presence, plots_in_cluster_insect_plants(cluster_id))
+insect_b_species_in_cluster = function(cluster_id) species_in_plots(insect_b_presence, plots_in_cluster_insect_plants(cluster_id))
+plant_species_in_cluster = function(cluster_id) species_in_plots(plant_presence, plots_in_cluster_insect_plants(cluster_id))
+bird_species_in_cluster = function(cluster_id) species_in_plots(bird_presence, plots_in_cluster_birds(cluster_id))
+
+insect_a_species_in_cluster(4)
+insect_b_species_in_cluster(4)
+bird_species_in_cluster(3)
+```
+
+# Load Indicator Species Data
+```{r}
+insect_a_indicator_species = read_input_csv(INSECT_A_INDICATOR_SPECIES)
+insect_b_indicator_species = read_input_csv(INSECT_B_INDICATOR_SPECIES)
+plant_indicator_species = read_input_csv(PLANT_INDICATOR_SPECIES)
+bird_indicator_species = read_input_csv(BIRD_INDICATOR_SPECIES)
+```
+
+```{r}
+species_list = function(species_list, indicator_species, cluster_id) {
+  species_list %>% 
+    left_join(indicator_species, by = 'species') %>%
+    dplyr::select(species, paste('s.', cluster_id, sep = ''), p.value, number_plots, total_plots) %>%
+    rename(cluster_indicator=paste('s.', cluster_id, sep = '')) %>%
+    mutate(indicator_flag = ifelse(cluster_indicator == 1 & !is.na(p.value), '*', '')) %>%
+    mutate(generalist_flag = ifelse(is.na(p.value), 'G', '')) %>%
+    mutate(species = gsub("_", " ", species)) %>%
+    mutate(label = paste(species, indicator_flag, generalist_flag)) %>%
+    mutate(presence = paste(number_plots, '/', total_plots, sep = '')) %>%
+    arrange(desc(indicator_flag), desc(generalist_flag), species) %>%
+    dplyr::select(label, presence)
+}
+
+test_cluster_id = 4
+species_list(insect_b_species_in_cluster(test_cluster_id), insect_b_indicator_species, test_cluster_id)
+```
+
+```{r}
+insect_a_species_list = function(cluster_id) species_list(insect_a_species_in_cluster(cluster_id), insect_a_indicator_species, cluster_id)
+insect_b_species_list = function(cluster_id) species_list(insect_b_species_in_cluster(cluster_id), insect_b_indicator_species, cluster_id)
+plant_species_list = function(cluster_id) species_list(plant_species_in_cluster(cluster_id), plant_indicator_species, cluster_id)
+bird_species_list = function(cluster_id) species_list(bird_species_in_cluster(cluster_id), bird_indicator_species, cluster_id)
+
+plant_species_list(3)
+```
