@@ -54,12 +54,8 @@ plots_in_cluster_insect_plants(8)
 ```
 # Load Survey Data
 ```{r}
-INSECT_PRESENCE = 'insect-presence.csv'
-PLANT_PRESENCE = 'plant-presence.csv'
-BIRD_PRESENCE = 'bird-presence.csv'
-
 insect_a_presence = read_input_csv(INSECT_PRESENCE)
-insect_b_presence = insect_a_presence %>% filter(!str_starts(species, "Any_"))
+insect_b_presence = exclude_non_species(insect_a_presence)
 plant_presence = read_input_csv(PLANT_PRESENCE)
 bird_presence = read_input_csv(BIRD_PRESENCE)
 
