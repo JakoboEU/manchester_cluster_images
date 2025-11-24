@@ -107,3 +107,46 @@ Across these sites, overall beta diversity was moderate (multi-site Sørensen β
 The PERMANOVA had R2 at 0.042 and so less variation in species composition is explained between clusters is explained
 
 Mean beta whittikar is increased from 3.31 to 3.47
+
+# Clusters
+
+## How Plots move betwee clusters at different resolutions
+![Plot cluster movement](output/plot_movement_between_clusters.jpg)
+
+## 20 x 20 m Habitat Clusters
+![Cluster 0](output/insects_and_plants_0.jpg)
+
+![Cluster 1](output/insects_and_plants_1.jpg)
+
+![Cluster 2](output/insects_and_plants_2.jpg)
+
+![Cluster 3](output/insects_and_plants_3.jpg)
+
+![Cluster 4](output/insects_and_plants_4.jpg)
+
+![Cluster 5](output/insects_and_plants_5.jpg)
+
+![Cluster 6](output/insects_and_plants_6.jpg)
+
+![Cluster 7](output/insects_and_plants_7.jpg)
+
+![Cluster 8](output/insects_and_plants_8.jpg)
+
+## 120 x 120 m Habitat Clusters
+![Cluster 0](output/birds_0.jpg)
+
+![Cluster 1](output/birds_1.jpg)
+
+![Cluster 2](output/birds_2.jpg)
+
+![Cluster 3](output/birds_3.jpg)
+
+![Cluster 4](output/birds_4.jpg)
+
+![Cluster 5](output/birds_5.jpg)
+
+![Cluster 6](output/birds_6.jpg)
+
+![Cluster 7](output/birds_7.jpg)
+
+![Cluster 8](output/birds_8.jpg)
