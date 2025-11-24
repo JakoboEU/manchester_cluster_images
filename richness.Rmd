@@ -430,6 +430,7 @@ turnover = function(beta_pair) {
     ) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 }
 turnover(insect_a_beta_pair)
+ggsave('output/insect_a_turnover.jpg')
 ```
 
 ```{r}
@@ -449,6 +450,7 @@ Across the set of sites, overall compositional heterogeneity was high (multi-sit
 
 ```{r}
 turnover(insect_b_beta_pair)
+ggsave('output/insect_b_turnover.jpg')
 ```
 
 ```{r}
@@ -470,6 +472,7 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
 
 ```{r}
 turnover(plant_beta_pair)
+ggsave('output/plant_turnover.jpg')
 ```
 
 ```{r}
@@ -490,6 +493,7 @@ Different clusters tend to support different bird assemblages (species replaceme
 
 ```{r}
 turnover(bird_beta_pair)
+ggsave('output/bird_turnover.jpg')
 ```
 
 Compare with birds using insect/plant clusters
