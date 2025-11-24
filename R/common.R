@@ -40,6 +40,9 @@ exclude_non_species = function(insect_df) {insect_df %>% filter(!str_starts(spec
 to_presence_dataframe = function(presence_data) {
   presence_data %>% dplyr::mutate(present = T) %>% pivot_wider(id_cols = title, names_from = species, values_from = present, values_fill = F)
 }
+to_presence_as_num_dataframe = function(presence_data) {
+  presence_data %>% dplyr::mutate(present = 1) %>% pivot_wider(id_cols = title, names_from = species, values_from = present, values_fill = 0)
+}
 
 include_sites_with_no_presence_record = function(presence_df, all_plot_titles) {
   sites_with_no_records = data.frame(title = data.frame(title = all_plot_titles) %>% filter(!(title %in% presence_df$title)) %>% dplyr::select(title))
