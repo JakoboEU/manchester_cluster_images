@@ -1,0 +1,139 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+source("R/common.R", local = knitr::knit_global())
+library(ggplot2)
+library(ggalluvial)
+```
+
+```{r}
+insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
+bird_cluster_json = read_input_json(BIRD_CLUSTERS)
+
+row_to_df = function(x) {
+  tibble(
+    cluster_id = as.integer(x$cluster_id),
+    cluster_name = x$cluster_name,
+    cluster_description = x$cluster_description,
+    habitat_description_from_photos = x$habitat_description_from_photos,
+    representative_plot_image = x$representative_plot_image
+  )
+}
+
+insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
+insect_plant_clusters
+```
+
+```{r}
+plots_in_cluster = function(cluster_json, cluster_id) {
+  idx = which(sapply(cluster_json, function(x) x$cluster_id) == cluster_id)
+  if (length(idx) == 0) return(NULL)
+  
+  df = data.frame(plot_id = cluster_json[[idx]]['plots'])
+  df$cluster_id = cluster_id
+  df
+}
+
+plots_in_cluster_insect_plants = function(cluster_id) plots_in_cluster(insect_plant_cluster_json, cluster_id)
+plots_in_cluster_birds = function(cluster_id) plots_in_cluster(bird_cluster_json, cluster_id)
+
+plots_in_cluster_insect_plants(8)
+```
+
+```{r}
+insect_plants_plots = map_dfr(0:9, plots_in_cluster_insect_plants) %>% left_join(insect_plant_clusters, by = 'cluster_id')
+insect_plants_plots
+```
+```{r}
+bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>% left_join(bird_clusters, by = 'cluster_id')
+bird_plots
+```
+
+```{r}
+plots = insect_plants_plots %>% rename('insect_plants_cluster_name' = cluster_name) %>% dplyr::select(plots, insect_plants_cluster_name) %>% 
+  left_join(bird_plots %>% rename('birds_cluster_name' = cluster_name) %>% dplyr::select(plots, birds_cluster_name), by = 'plots')
+plots
+```
+
+
+```{r}
+# Long format for ggalluvial
+plots_long =
+  plots %>%
+  pivot_longer(
+    cols = c(insect_plants_cluster_name, birds_cluster_name),
+    names_to = "scale",
+    values_to = "cluster"
+  ) %>%
+  mutate(
+    # order left–right
+    scale = factor(scale,
+                   levels = c("insect_plants_cluster_name", "birds_cluster_name"),
+                   labels = c("20 x 20 m Cluster", "120 x 120 m Cluster")),
+    # make sure cluster order is consistent and not alphabetical chaos
+    cluster = factor(cluster)
+  )
+
+ggplot(
+  plots_long,
+  aes(
+    x = scale,
+    stratum = cluster,
+    alluvium = plots,   # one flow per plot
+    y = 1
+  )
+) +
+  geom_flow(
+    stat = "alluvium",
+    lode.guidance = "forward",
+    alpha = 0.3
+  ) +
+  geom_stratum(width = 0.4) +
+  geom_text(
+    stat = "stratum",
+    aes(label = cluster),
+    size = 3
+  ) +
+  scale_x_discrete(expand = c(0.2, 0.2)) +
+  labs(
+    x = NULL,
+    y = "Number of plots",
+    title = "Movement of plots between clusterings"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+# Count how many plots move from each cluster pair
+flows =
+  plots %>%
+  count(insect_plants_cluster_name, birds_cluster_name, name = "n")
+
+ggplot(flows,
+       aes(
+         axis1 = insect_plants_cluster_name,
+         axis2 = birds_cluster_name,
+         y = n
+       )) +
+  geom_alluvium(aes(fill = insect_plants_cluster_name),
+                width = 0, alpha = 0.7) +
+  geom_stratum(width = 0.4) +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 2) +
+  scale_x_discrete(
+    limits = c("20 x 20 m Cluster", "120 x 120 m Cluster"),
+    expand = c(0.05, 0.05)
+  ) +
+  labs(
+    x = NULL,
+    y = "Number of plots",
+    title = "Cluster transitions (aggregated by cluster pair)",
+    fill = "20 x 20 m Cluster"
+  ) +
+  theme_minimal() + 
+  theme(legend.position="none") 
+ggsave('output/plot_movement_between_clusters.jpg', width = 2500, height = 1000, units = 'px')
+```
