@@ -4,6 +4,7 @@ library(tidyr)
 library(rjson)
 library(tibble)
 library(purrr)
+library(tidyverse)
 
 IMAGE_DIRECTORY="/Users/james/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
 
@@ -27,7 +28,7 @@ PLANT_INDICATOR_SPECIES = 'plant_indicator_species_9.csv'
 BIRD_INDICATOR_SPECIES = 'bird_indicator_species_9.csv'
 
 read_input_csv = function(filename) {
-  read_csv(input_file(filename))
+  read_csv(input_file(filename), show_col_types = F)
 }
 
 INSECT_PRESENCE = 'insect-presence.csv'
@@ -53,3 +54,6 @@ include_sites_with_no_presence_record = function(presence_df, all_plot_titles) {
   
   rbind(presence_df, sites_with_no_records)
 }
+
+INSECT_PLANT_PREDICTORS = 'insect-plant-predictors.csv'
+BIRD_PREDICTORS = 'bird-predictors.csv'

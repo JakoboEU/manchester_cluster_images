@@ -1,0 +1,250 @@
+---
+title: "Figures for write up"
+output: html_notebook
+---
+
+```{r}
+source("R/common.R", local = knitr::knit_global())
+source("R/externals.R", local = knitr::knit_global())
+library(ggplot2)
+library(sf)
+library(raster)
+library(grid)
+library(jpeg)
+library(gridExtra)
+```
+# Palettes
+```{r}
+insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
+bird_cluster_json = read_input_json(BIRD_CLUSTERS)
+
+row_to_df = function(x) {
+  tibble(
+    cluster_id = as.integer(x$cluster_id),
+    cluster_name = x$cluster_name,
+    representative_plot_image = x$representative_plot_image
+  )
+}
+
+insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
+```
+
+```{r}
+COLOUR_CLUSTER_0 = "#332288"  # grass with scattered trees (residential/greenspace)
+COLOUR_CLUSTER_1 = "#CC6677"  # built-dominated urban with vegetated fragments
+COLOUR_CLUSTER_2 = "#117733"  # mixed multi-layer woodland
+COLOUR_CLUSTER_3 = "#DDCC77"  # amenity grassland / meadow
+COLOUR_CLUSTER_4 = "#88CCEE"  # parkland — mature trees over grass
+COLOUR_CLUSTER_5 = "#44AA99"  # mature large-tree canopy / woodland
+COLOUR_CLUSTER_6 = "#999933"  # impervious / hard-standing
+COLOUR_CLUSTER_7 = "#882255"  # short turf / intensively managed lawn
+COLOUR_CLUSTER_8 = "#AA4499"  # shrub–small-tree mosaic / young scrub-woodland
+
+colours_by_id =
+  c(
+    `0` = COLOUR_CLUSTER_0,
+    `1` = COLOUR_CLUSTER_1,
+    `2` = COLOUR_CLUSTER_2,
+    `3` = COLOUR_CLUSTER_3,
+    `4` = COLOUR_CLUSTER_4,
+    `5` = COLOUR_CLUSTER_5,
+    `6` = COLOUR_CLUSTER_6,
+    `7` = COLOUR_CLUSTER_7,
+    `8` = COLOUR_CLUSTER_8
+  )
+
+insect_plant_clusters =
+  insect_plant_clusters %>%
+  mutate(
+    colour = colours_by_id[as.character(cluster_id)]
+  )
+insect_plant_clusters
+```
+
+```{r}
+insect_plant_clusters_scale_fill_manual_cluster =
+  scale_fill_manual(
+    values = setNames(insect_plant_clusters$colour, insect_plant_clusters$cluster_name),
+    name = "Habitat class",
+    na.value = "white",
+    na.translate = FALSE
+  )
+
+insect_plant_clusters_scale_colour_manual_cluster =
+  scale_colour_manual(
+    values = setNames(insect_plant_clusters$colour, insect_plant_clusters$cluster_name),
+    name = "Habitat class",
+    na.value = "white",
+    na.translate = FALSE
+  )
+
+```
+
+# Clusters
+```{r}
+plots_in_cluster = function(cluster_json, cluster_id) {
+  idx = which(sapply(cluster_json, function(x) x$cluster_id) == cluster_id)
+  if (length(idx) == 0) return(NULL)
+  
+  df = data.frame(plot_id = cluster_json[[idx]]['plots'])
+  df$cluster_id = cluster_id
+  df
+}
+
+plots_in_cluster_insect_plants = function(cluster_id) plots_in_cluster(insect_plant_cluster_json, cluster_id)
+plots_in_cluster_birds = function(cluster_id) plots_in_cluster(bird_cluster_json, cluster_id)
+```
+
+```{r}
+insect_plants_plots = map_dfr(0:9, plots_in_cluster_insect_plants) %>% 
+  left_join(insect_plant_clusters, by = 'cluster_id') %>% 
+  dplyr::select(plots, cluster_name) %>% arrange(plots) %>% 
+  rename(plot_id = plots, cluster_id = cluster_name)
+insect_plants_plots
+```
+
+```{r}
+bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>% 
+  left_join(bird_clusters, by = 'cluster_id') %>% 
+  dplyr::select(plots, cluster_name) %>% 
+  rename(plot_id = plots, cluster_id = cluster_name)
+bird_plots
+```
+
+## 20 x 20 m Habitat
+```{r}
+insect_plant_cluster_plot_data = read_input_csv('insect-plant-predictors.csv') %>%
+  rename(plot_id = title) %>%
+  left_join(insect_plants_plots, by = 'plot_id') %>%
+  dplyr::select(cluster_id, herb, shrb, smll_tree, lrg_tree, habitat_complexity, ndvi) %>%
+  pivot_longer(-cluster_id, names_to = 'Explanatory', values_to = 'value')
+
+insect_plant_cluster_makeup = ggplot(insect_plant_cluster_plot_data,  aes(x = Explanatory, fill = cluster_id, y = value)) +
+  geom_boxplot(position = position_dodge(width = 2), colour = NA) +
+  theme_minimal() +
+  ylim(0, 1) +
+  labs(y = "Value", color = "Cluster", fill = "Cluster") + 
+  theme(legend.position = 'bottom', legend.text =  element_text(size = 4)) +
+  guides(fill = guide_legend(nrow = 3, byrow = TRUE)) + 
+  insect_plant_clusters_scale_fill_manual_cluster +
+  scale_x_discrete(limits=c("habitat_complexity","herb","shrb", "smll_tree", "lrg_tree", "ndvi"), labels=c('Habitat\nComplexity', 'Herbaceous\ncover', 'Shrub\ncover', 'Small\ntree cover', 'Large\ntree cover', 'NDVI'))
+insect_plant_cluster_makeup
+```
+
+```{r}
+connected_component_raster_to_df = function(connected_component_raster, ndvi_min_value) {
+  connected_component_df <- as.data.frame(connected_component_raster, xy = TRUE)
+  colnames(connected_component_df) <- c("x", "y", "value")
+  connected_component_df$value = ifelse(!is.na(connected_component_df$value), ndvi_min_value, NA)
+  connected_component_df
+}
+```
+
+```{r}
+m60_ringroad_shape = st_read(EXTERNAL_SHP_RINGROAD)
+
+insect_plant_survey_squares = st_read(EXTERNAL_SHP_SURVEY_SQUARES) %>% right_join(insect_plants_plots, by = c('title' = 'plot_id'))
+
+large_survey_squares = st_read(EXTERNAL_SHP_LARGE_SURVEY_SQUARES) %>% filter(lg_id %in% insect_plant_survey_squares$lg_id)
+point6_connected_components_df = connected_component_raster_to_df(raster(EXTERNAL_TIFF_CONNECTED_AREAS_PT6), 0.6)
+point8_connected_components_df = connected_component_raster_to_df(raster(EXTERNAL_TIFF_CONNECTED_AREAS_PT8), 0.8)
+
+map_plot_extent = st_bbox(m60_ringroad_shape)
+PLOT_PADDING_Y = 200
+PLOT_PADDING_X = 2000
+
+create_map_plot = function(survey_squares_sf, scale_colour) {
+  survey_points = survey_squares_sf %>% st_centroid()
+  ggplot() +
+    coord_fixed() +
+    scale_fill_manual(
+      values = c("0.6" = "grey95", "0.8" = "grey70"),
+      na.value = NA,         
+      na.translate = FALSE, 
+      name = "Min NDVI"
+    ) + 
+    geom_sf(data = m60_ringroad_shape, fill = NA, colour = "darkblue", linewidth = 1) +
+    geom_raster(data = point6_connected_components_df, aes(x = x, y = y, fill = factor(value)), na.rm = FALSE) + 
+    geom_raster(data = point8_connected_components_df, aes(x = x, y = y, fill = factor(value)), na.rm = FALSE) + 
+    geom_sf(data = large_survey_squares, fill = NA, colour = "black") +
+    geom_sf(data = survey_points, aes(colour = cluster_id), size = 1.5, shape = 16) + 
+    coord_sf(
+      xlim = c(map_plot_extent['xmin'] - PLOT_PADDING_X, map_plot_extent['xmax'] + PLOT_PADDING_X), 
+      ylim = c(map_plot_extent['ymin'] - PLOT_PADDING_Y, map_plot_extent['ymax'] + PLOT_PADDING_Y), 
+      expand = FALSE
+    ) +
+    theme_minimal() + 
+    theme_void() + 
+    theme(
+      legend.box      = "vertical",
+      legend.title    = element_text(face = "bold"),
+      legend.position = "bottom", 
+      legend.text =  element_text(size = 3)
+    ) +
+    labs(colour = 'Cluster') + 
+    guides(colour = guide_legend(nrow = 3, byrow = TRUE)) +
+    scale_colour
+}
+
+insect_plant_cluster_map_plot = create_map_plot(insect_plant_survey_squares, insect_plant_clusters_scale_colour_manual_cluster)
+insect_plant_cluster_map_plot
+```
+
+```{r}
+show_image = function(plot_id) {
+  image_file = paste(sub(" ", "_", plot_id), "jpg", sep = ".")
+  full_image_file = file.path(IMAGE_DIRECTORY, image_file)
+
+  if (file.exists(full_image_file)) {
+    survey_site_image = jpeg::readJPEG(full_image_file)
+    rasterGrob(survey_site_image, interpolate = TRUE)
+  } else {
+    nullGrob()  # no image, transparent placeholder
+  }
+}
+
+cluster_info = insect_plant_clusters %>%
+  arrange(cluster_name)  # optional, so tiles go in ID order
+
+make_cluster_tile = function(cluster_row) {
+  # coloured background
+  bg = rectGrob(gp = gpar(fill = cluster_row$colour, col = NA))
+
+  # image grob
+  img = show_image(cluster_row$representative_plot_image)
+
+  # title (cluster_id) in top-left
+  title = textGrob(
+    label = as.character(cluster_row$cluster_name),
+    x = 0.02, y = 0.98,
+    just = c("left", "top"),
+    gp = gpar(col = "black", fontsize = 8)
+  )
+
+  grobTree(bg, img, title)
+}
+
+# one grob per row of cluster_info
+tiles = lapply(seq_len(nrow(cluster_info)), function(i) {
+  make_cluster_tile(cluster_info[i, ])
+})
+
+# draw to the current device
+insect_plant_cluster_images = gridExtra::grid.arrange(grobs = tiles, ncol = 3)
+insect_plant_cluster_images
+```
+
+```{r}
+jpeg('output/figure_1_insects_and_plants.jpg', width = 2100, height = 2700, units = "px", res = 300)
+gridExtra::grid.arrange(grobs = list(insect_plant_cluster_images, insect_plant_cluster_map_plot + theme(legend.position = 'none'), insect_plant_cluster_makeup + theme(legend.position = 'none')), ncol = 1, heights = c(3, 3, 1))
+dev.off()
+```
+
+## 120 x 120 m Habitat
+
+
+# NMDS
+
+
+
+# Turnover
