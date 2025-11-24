@@ -110,7 +110,7 @@ Mean beta whittikar is increased from 3.31 to 3.47
 
 # Clusters
 
-## How Plots move betwee clusters at different resolutions
+## How Plots move between clusters at different resolutions
 ![Plot cluster movement](output/plot_movement_between_clusters.jpg)
 
 ## 20 x 20 m Habitat Clusters
