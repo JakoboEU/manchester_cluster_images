@@ -22,6 +22,8 @@ Across habitat clusters, insect beta diversity (multi-site Sørensen) was modera
  * Turnover share ≈ 0.46 / 0.589 ≈ 78%
  * Nestedness share ≈ 22%
 
+**Turnover**
+[Insect turnover](output/insect_a_turnover.jpg)
 
 ### Insects (species only)
 
@@ -42,6 +44,9 @@ Insect communities showed only a weak, non-significant tendency to differ among 
 Across the set of sites, overall compositional heterogeneity was high (multi-site Sørensen βSOR ≈ 0.66). Most of this beta diversity was attributable to species turnover (βSIM ≈ 0.54, ~82% of βSOR), with a smaller contribution of nestedness (βSNE ≈ 0.12, ~18%). This indicates that sites/clusters mainly differ by hosting different species, rather than simply representing poorer subsets of a common species pool.
  * Turnover share ≈ 0.5407 / 0.6565 ≈ 0.82 → ~82% of beta
  * Nestedness share ≈ 0.1158 / 0.6565 ≈ 0.18 → ~18% of beta
+
+**Turnover**
+[Insect turnover](output/insect_b_turnover.jpg)
 
 ### Plants
 
@@ -65,6 +70,9 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
  * Turnover share ≈ 0.26 / 0.405 ≈ 63%
  * Nestedness share ≈ 37%
 
+**Turnover**
+[Insect turnover](output/plant_turnover.jpg)
+
 ## Birds 
 
 ### Clustered habitats at 120 x 120 m
@@ -86,6 +94,9 @@ Bird communities differed significantly, though moderately, among habitat cluste
 Different clusters tend to support different bird assemblages (species replacement dominates), with a smaller role for nestedness – some clusters are richer than others, but most of the variation comes from species swapping between habitat types rather than simply adding/removing a subset.
  * Turnover share ≈ 0.35 / 0.452 ≈ 78%
  * Nestedness share ≈ 22%
+
+**Turnover**
+[Insect turnover](output/bird_turnover.jpg)
 
 ### Do the 20 x 20 m clusters work?
 Across these sites, overall beta diversity was moderate (multi-site Sørensen βSOR ≈ 0.45). Around 60% of this heterogeneity was due to species turnover (βSIM ≈ 0.27), while about 40% reflected nestedness (βSNE ≈ 0.18). Thus, both species replacement and richer-vs-poorer subset patterns contribute substantially to community differences, with nestedness playing a relatively larger role here than in the more turnover-dominated cases.
