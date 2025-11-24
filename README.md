@@ -23,7 +23,7 @@ Across habitat clusters, insect beta diversity (multi-site Sørensen) was modera
  * Nestedness share ≈ 22%
 
 **Turnover**
-[Insect turnover](output/insect_a_turnover.jpg)
+![Insect turnover](output/insect_a_turnover.jpg)
 
 ### Insects (species only)
 
@@ -46,7 +46,7 @@ Across the set of sites, overall compositional heterogeneity was high (multi-sit
  * Nestedness share ≈ 0.1158 / 0.6565 ≈ 0.18 → ~18% of beta
 
 **Turnover**
-[Insect turnover](output/insect_b_turnover.jpg)
+![Insect (species only) turnover](output/insect_b_turnover.jpg)
 
 ### Plants
 
@@ -71,7 +71,7 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
  * Nestedness share ≈ 37%
 
 **Turnover**
-[Insect turnover](output/plant_turnover.jpg)
+![Plant turnover](output/plant_turnover.jpg)
 
 ## Birds 
 
@@ -96,7 +96,7 @@ Different clusters tend to support different bird assemblages (species replaceme
  * Nestedness share ≈ 22%
 
 **Turnover**
-[Insect turnover](output/bird_turnover.jpg)
+![Bird turnover](output/bird_turnover.jpg)
 
 ### Do the 20 x 20 m clusters work?
 Across these sites, overall beta diversity was moderate (multi-site Sørensen βSOR ≈ 0.45). Around 60% of this heterogeneity was due to species turnover (βSIM ≈ 0.27), while about 40% reflected nestedness (βSNE ≈ 0.18). Thus, both species replacement and richer-vs-poorer subset patterns contribute substantially to community differences, with nestedness playing a relatively larger role here than in the more turnover-dominated cases.
