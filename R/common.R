@@ -98,3 +98,21 @@ append_bird_palette = function(bird_clusters, insect_plant_clusters) {
   bird_clusters$colour = colorspace::lighten(bird_clusters$colour, amount = BIRD_CLUSTER_LIGHTEN_FACTOR)
   bird_clusters
 }
+
+fill_scale = function(clusters_with_colours) {
+  scale_fill_manual(
+    values = setNames(clusters_with_colours$colour, clusters_with_colours$cluster_name),
+    name = "Habitat class",
+    na.value = "white",
+    na.translate = FALSE
+  )
+}
+
+colour_scale = function(clusters_with_colours) {
+  scale_colour_manual(
+    values = setNames(clusters_with_colours$colour, clusters_with_colours$cluster_name),
+    name = "Habitat class",
+    na.value = "white",
+    na.translate = FALSE
+  )
+}

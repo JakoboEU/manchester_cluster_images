@@ -134,6 +134,8 @@ ggplot(flows,
     fill = "20 x 20 m Cluster"
   ) +
   theme_minimal() + 
-  theme(legend.position="none") 
-ggsave('output/plot_movement_between_clusters.jpg', width = 2500, height = 1000, units = 'px')
+  fill_scale(append_insect_plant_palette(insect_plant_clusters)) + 
+  theme(legend.position = "bottom", legend.text = element_text(size = 5)) +
+  guides(fill = guide_legend(nrow = 3, byrow = TRUE))
+ggsave('output/figure_plot_movement_between_clusters.jpg', width = 2500, height = 1000, units = 'px')
 ```

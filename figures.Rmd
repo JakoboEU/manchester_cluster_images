@@ -43,37 +43,10 @@ bird_clusters
 
 
 ```{r}
-insect_plant_clusters_scale_fill_manual_cluster =
-  scale_fill_manual(
-    values = setNames(insect_plant_clusters$colour, insect_plant_clusters$cluster_name),
-    name = "Habitat class",
-    na.value = "white",
-    na.translate = FALSE
-  )
-
-insect_plant_clusters_scale_colour_manual_cluster =
-  scale_colour_manual(
-    values = setNames(insect_plant_clusters$colour, insect_plant_clusters$cluster_name),
-    name = "Habitat class",
-    na.value = "white",
-    na.translate = FALSE
-  )
-
-bird_clusters_scale_fill_manual_cluster =
-  scale_fill_manual(
-    values = setNames(bird_clusters$colour, bird_clusters$cluster_name),
-    name = "Habitat class",
-    na.value = "white",
-    na.translate = FALSE
-  )
-
-bird_clusters_scale_colour_manual_cluster =
-  scale_colour_manual(
-    values = setNames(bird_clusters$colour, bird_clusters$cluster_name),
-    name = "Habitat class",
-    na.value = "white",
-    na.translate = FALSE
-  )
+insect_plant_clusters_scale_fill_manual_cluster = fill_scale(insect_plant_clusters)
+insect_plant_clusters_scale_colour_manual_cluster = colour_scale(insect_plant_clusters)
+bird_clusters_scale_fill_manual_cluster = fill_scale(bird_clusters)
+bird_clusters_scale_colour_manual_cluster = colour_scale(bird_clusters)
 ```
 
 # Clusters
