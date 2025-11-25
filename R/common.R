@@ -57,3 +57,28 @@ include_sites_with_no_presence_record = function(presence_df, all_plot_titles) {
 
 INSECT_PLANT_PREDICTORS = 'insect-plant-predictors.csv'
 BIRD_PREDICTORS = 'bird-predictors.csv'
+
+COLOUR_CLUSTER_0 = "#332288"  # grass with scattered trees (residential/greenspace)
+COLOUR_CLUSTER_1 = "#CC6677"  # built-dominated urban with vegetated fragments
+COLOUR_CLUSTER_2 = "#117733"  # mixed multi-layer woodland
+COLOUR_CLUSTER_3 = "#DDCC77"  # amenity grassland / meadow
+COLOUR_CLUSTER_4 = "#88CCEE"  # parkland — mature trees over grass
+COLOUR_CLUSTER_5 = "#44AA99"  # mature large-tree canopy / woodland
+COLOUR_CLUSTER_6 = "#999933"  # impervious / hard-standing
+COLOUR_CLUSTER_7 = "#882255"  # short turf / intensively managed lawn
+COLOUR_CLUSTER_8 = "#AA4499"  # shrub–small-tree mosaic / young scrub-woodland
+
+COLOUR_CLUSTER_ALT = "#E69F00"
+
+colours_by_id =
+  c(
+    `0` = COLOUR_CLUSTER_0,
+    `1` = COLOUR_CLUSTER_1,
+    `2` = COLOUR_CLUSTER_2,
+    `3` = COLOUR_CLUSTER_3,
+    `4` = COLOUR_CLUSTER_4,
+    `5` = COLOUR_CLUSTER_5,
+    `6` = COLOUR_CLUSTER_6,
+    `7` = COLOUR_CLUSTER_7,
+    `8` = COLOUR_CLUSTER_8
+  )
