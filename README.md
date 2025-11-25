@@ -1,29 +1,6 @@
 # Understanding Species within Clusters
 
 ## Clustered habitats at 20 x 20 m
-### Insects
-Includes species clumped together across plots such as any butterfly, any hoverfly, any bumblebee, as well as, any white-tailed bumblebee, any red-tailed bumblebee and any small white butterfly.
-
-| cluster_id                                   | mean_alpha | sd_alpha | n_plots | gamma | beta_whittaker |
-|---------------------------------------------|-----------:|---------:|--------:|------:|----------------:|
-| amenity grassland / meadow                  |   2.263158 | 1.781044 |      38 |    17 |        6.511628 |
-| built-dominated urban with vegetated fragments |   2.550000 | 2.012461 |      20 |    12 |        3.705882 |
-| grass with scattered trees (residential/greenspace) |   1.850000 | 1.561557 |      40 |    12 |        5.486486 |
-| impervious / hard-standing                  |   2.103448 | 1.661638 |      58 |    16 |        6.606557 |
-| mature large-tree canopy / woodland         |   2.272727 | 2.051290 |      22 |    15 |        5.600000 |
-| mixed multi-layer woodland                  |   2.733333 | 1.964045 |      30 |    13 |        3.756098 |
-| parkland — mature trees over grass          |   2.355263 | 1.801510 |      76 |    19 |        7.067039 |
-| short turf / intensively managed lawn       |   2.225000 | 1.813975 |      80 |    19 |        7.539326 |
-| shrub–small-tree mosaic / young scrub-woodland |   2.872340 | 2.006696 |      47 |    20 |        5.962963 |
-
-Insect community composition differed significantly among habitat clusters (PERMANOVA on Jaccard dissimilarities, R² ≈ 0.068, F₈,₁₇₃ ≈ 1.57, p = 0.007). Multivariate dispersion did not differ between clusters (PERMDISP, F₈,₁₇₃ ≈ 0.95, p = 0.48), indicating that clusters varied primarily in their centroid composition rather than in within-cluster heterogeneity.
-
-Across habitat clusters, insect beta diversity (multi-site Sørensen) was moderate to high (βₛₒᵣ ≈ 0.59). Most of this heterogeneity was attributable to species turnover (βₛᵢₘ ≈ 0.46, ~78% of βₛₒᵣ), with a smaller contribution of nestedness (βₛₙₑ ≈ 0.13, ~22% of βₛₒᵣ). This indicates that clusters differ primarily by hosting different insect species, rather than simply representing poorer or richer subsets of a common species pool.
- * Turnover share ≈ 0.46 / 0.589 ≈ 78%
- * Nestedness share ≈ 22%
-
-Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
-
 ### Insects (species only)
 
 | cluster_id                                   | mean_alpha | sd_alpha  | n_plots | gamma | beta_whittaker |
@@ -60,6 +37,29 @@ The PERMANOVA had R2 at 0.090 and so more variation in species composition is ex
 Turnover decreases, so more nestedness in sites.
 
 Mean beta whittikar decreases from 5.57 to 5.39
+
+### Insects (all presence)
+Includes species clumped together across plots such as any butterfly, any hoverfly, any bumblebee, as well as, any white-tailed bumblebee, any red-tailed bumblebee and any small white butterfly.
+
+| cluster_id                                   | mean_alpha | sd_alpha | n_plots | gamma | beta_whittaker |
+|---------------------------------------------|-----------:|---------:|--------:|------:|----------------:|
+| amenity grassland / meadow                  |   2.263158 | 1.781044 |      38 |    17 |        6.511628 |
+| built-dominated urban with vegetated fragments |   2.550000 | 2.012461 |      20 |    12 |        3.705882 |
+| grass with scattered trees (residential/greenspace) |   1.850000 | 1.561557 |      40 |    12 |        5.486486 |
+| impervious / hard-standing                  |   2.103448 | 1.661638 |      58 |    16 |        6.606557 |
+| mature large-tree canopy / woodland         |   2.272727 | 2.051290 |      22 |    15 |        5.600000 |
+| mixed multi-layer woodland                  |   2.733333 | 1.964045 |      30 |    13 |        3.756098 |
+| parkland — mature trees over grass          |   2.355263 | 1.801510 |      76 |    19 |        7.067039 |
+| short turf / intensively managed lawn       |   2.225000 | 1.813975 |      80 |    19 |        7.539326 |
+| shrub–small-tree mosaic / young scrub-woodland |   2.872340 | 2.006696 |      47 |    20 |        5.962963 |
+
+Insect community composition differed significantly among habitat clusters (PERMANOVA on Jaccard dissimilarities, R² ≈ 0.068, F₈,₁₇₃ ≈ 1.57, p = 0.007). Multivariate dispersion did not differ between clusters (PERMDISP, F₈,₁₇₃ ≈ 0.95, p = 0.48), indicating that clusters varied primarily in their centroid composition rather than in within-cluster heterogeneity.
+
+Across habitat clusters, insect beta diversity (multi-site Sørensen) was moderate to high (βₛₒᵣ ≈ 0.59). Most of this heterogeneity was attributable to species turnover (βₛᵢₘ ≈ 0.46, ~78% of βₛₒᵣ), with a smaller contribution of nestedness (βₛₙₑ ≈ 0.13, ~22% of βₛₒᵣ). This indicates that clusters differ primarily by hosting different insect species, rather than simply representing poorer or richer subsets of a common species pool.
+ * Turnover share ≈ 0.46 / 0.589 ≈ 78%
+ * Nestedness share ≈ 22%
+
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 ### Insects (with grouped taxa)
 Includes any white-tailed bumblebee, any red-tailed bumblebee, any small white butterfly, and any blue butterfly
