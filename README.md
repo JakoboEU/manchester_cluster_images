@@ -46,6 +46,10 @@ Across the set of sites, overall compositional heterogeneity was high (multi-sit
  * Turnover share ≈ 0.5407 / 0.6565 ≈ 0.82 → ~82% of beta
  * Nestedness share ≈ 0.1158 / 0.6565 ≈ 0.18 → ~18% of beta
 
+#### Results Statement
+Plot-level insect species richness was low and very similar across habitat clusters (≈2 species per plot; ANOVA F ≈ 1.27, df ≈ 8,402, p ≈ 0.12), with mean α‐richness ranging only from about 2.1 to 2.3 species per plot. In contrast, cluster-level γ‐richness and Whittaker β varied more, with parkland — mature trees over grass, short turf / intensively managed lawn, and shrub–small-tree mosaic / young scrub-woodland supporting the largest and most heterogeneous species pools (γ = 14–15; βW ≈ 5.3–5.5) compared with more homogeneous clusters such as built-dominated urban with vegetated fragments, grass with scattered trees, and mixed multi-layer woodland (γ = 8; βW ≈ 2.6–2.8).
+
+Despite these differences in γ and β within clusters, insect community composition showed only a weak, non-significant tendency to vary among clusters (PERMANOVA on Jaccard distances: R² ≈ 0.07, F₈,₁₂₇ ≈ 1.23, p = 0.089), and multivariate dispersion did not differ among clusters (PERMDISP: F₈,₁₂₇ ≈ 0.55, p = 0.82). Overall β-diversity across all sites was high (βSOR ≈ 0.66), driven mainly by species turnover (βSIM ≈ 0.54; ~82% of βSOR) rather than nestedness (βSNE ≈ 0.12; ~18%), indicating that sites tend to host different species rather than simply poorer subsets of a common fauna.
 
 ### Insects (with grouped taxa)
 Includes any white-tailed bumblebee, any red-tailed bumblebee, any small white butterfly, and any blue butterfly
@@ -98,6 +102,10 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
  * Turnover share ≈ 0.26 / 0.405 ≈ 63%
  * Nestedness share ≈ 37%
 
+#### Results Statement
+Plant species richness varied strongly among habitat clusters (Table X). Mean plot‐level richness ranged from about 7–8 species in impervious / hard-standing and short turf / intensively managed lawn to ~11–12 species in mature large-tree canopy / woodland, mixed multi-layer woodland, parkland — mature trees over grass, and shrub–small-tree mosaic / young scrub-woodland. Cluster-level γ-richness showed the same pattern (ANOVA on γ: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey tests indicating that impervious / hard-standing and short turf / intensively managed lawn supported significantly lower γ-richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland. Within-cluster βWhittaker was highest for impervious / hard-standing and short turf, indicating substantial among-plot variation even in these species-poor habitat types.
+
+Plant community composition also differed significantly among clusters (PERMANOVA on Jaccard dissimilarities: R² ≈ 0.069, F₈,₃₉₅ ≈ 3.65, p = 0.001), and multivariate dispersion varied between clusters (PERMDISP: F₈,₃₉₅ ≈ 3.15, p ≈ 0.0018), suggesting that clusters capture both shifts in mean composition and differences in within-cluster heterogeneity. Overall multi-site β-diversity was moderate (βSOR ≈ 0.40), with most variation due to turnover (βSIM ≈ 0.26; ~63% of βSOR) and the remainder due to nestedness (~37%). Ecologically, this implies that some structurally complex, less intensively managed clusters act as species-rich “core” floras, while more simplified habitats often hold species-poor subsets of these communities, with additional true species replacement among clusters.
 
 ## Birds 
 
@@ -125,6 +133,10 @@ Different clusters tend to support different bird assemblages (species replaceme
  * Turnover share ≈ 0.35 / 0.452 ≈ 78%
  * Nestedness share ≈ 22%
 
+#### Results Statement
+Bird richness and composition varied among habitat clusters, but in a different way to plants. Mean plot-level bird richness ranged from ~4.3 species in impervious / hard-standing to ~6–6.3 species in short turf / intensively managed lawn and parkland — mature trees over grass (Table X). Alpha richness differed significantly among clusters (ANOVA: F₈,₄₀₂ = 3.41, p < 0.001), with post-hoc tests showing that impervious / hard-standing plots supported significantly fewer species per plot than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and short turf / intensively managed lawn. Cluster-level γ-richness was broadly highest in amenity grassland / meadow, parkland — mature trees over grass and shrub–small-tree mosaic / young scrub-woodland (γ ≈ 24–26), and lower in built-dominated urban with vegetated fragments and short turf / intensively managed lawn (γ ≈ 19–20). Within-cluster βWhittaker was highest for impervious / hard-standing, indicating relatively high among-plot turnover in an overall species-poor bird assemblage, and lowest for short turf / intensively managed lawn, where plots tended to share similar bird communities.
+
+Bird community composition also differed significantly, though moderately, among habitat clusters (PERMANOVA on Jaccard dissimilarities: R² ≈ 0.073, F₈,₃₉₉ ≈ 3.89, p = 0.001), while multivariate dispersion did not vary significantly between clusters (PERMDISP: F₈,₃₉₉ ≈ 1.60, p ≈ 0.12), suggesting that clusters mainly differ in their centroids rather than in within-cluster heterogeneity. Overall multi-site β-diversity was moderate (βSOR ≈ 0.45), and dominated by species turnover (βSIM ≈ 0.35; ~78% of βSOR) rather than nestedness (~22%). Ecologically, this implies that different habitat clusters host characteristically different bird assemblages, with most variation arising from species replacement between habitat types rather than simply from some clusters being species-poor subsets of richer ones.
 
 ### Do the 20 x 20 m clusters work?
 Across these sites, overall beta diversity was moderate (multi-site Sørensen βSOR ≈ 0.45). Around 60% of this heterogeneity was due to species turnover (βSIM ≈ 0.27), while about 40% reflected nestedness (βSNE ≈ 0.18). Thus, both species replacement and richer-vs-poorer subset patterns contribute substantially to community differences, with nestedness playing a relatively larger role here than in the more turnover-dominated cases.
