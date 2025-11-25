@@ -11,6 +11,8 @@ library(ggplot2)
 library(betapart)
 library(viridis)
 library(scales)
+library(emmeans)
+library(multcompView)
 ```
 
 # Load data
@@ -129,12 +131,15 @@ alpha_richness_by_cluster(insect_a_presence, insect_plants_plots)
 ```
 
 ```{r}
-alpha_anova_by_cluster = function(comm, meta) {
+alpha_raw_anova_by_cluster = function(comm, meta) {
   alpha_plot = specnumber(comm)
   meta$alpha = alpha_plot
   
-  an = aov(alpha ~ cluster_id, data = meta)
-  summary(an)
+  aov(alpha ~ cluster_id, data = meta)
+}
+
+alpha_anova_by_cluster = function(comm, meta) {
+  summary(alpha_raw_anova_by_cluster(comm, meta))
 }
 
 alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
@@ -240,7 +245,13 @@ plant_richness
 ```{r}
 alpha_anova_by_cluster(plant_presence, insect_plants_plots)
 ```
-Plot-level plant species richness did significantly differ among habitat clusters (ANOVA:F=15.79, p < 0.0001, DF = 402)
+Plot-level plant species richness significantly differed among habitat clusters (ANOVA:F=15.79, p < 0.0001, DF = 402)
+
+```{r}
+plant_aov = alpha_raw_anova_by_cluster(plant_presence, insect_plants_plots)
+plant_cld_alpha = tukey_groups = agricolae::HSD.test(plant_aov, trt = "cluster_id")
+plant_cld_alpha$groups
+```
 
 ### Birds
 Which set of clusters give more compositionally diverse plots for bird species?
@@ -257,7 +268,13 @@ bird_richness
 ```{r}
 alpha_anova_by_cluster(bird_presence, bird_plots)
 ```
-Plot-level insect species richness did significantly differ among habitat clusters (ANOVA:F=3.41, p < 0.001, DF = 402)
+Plot-level bird species richness significantly differed among habitat clusters (ANOVA:F=3.41, p < 0.001, DF = 402)
+
+```{r}
+bird_aov = alpha_raw_anova_by_cluster(bird_presence, bird_plots)
+bird_cld_alpha = tukey_groups = agricolae::HSD.test(bird_aov, trt = "cluster_id")
+bird_cld_alpha$groups
+```
 
 # Plot-level beta diversity & composition: dissimilarities, ordination, PERMANOVA
 See how composition differs among plots and clusters (ordination, PERMANOVA, dispersion)
