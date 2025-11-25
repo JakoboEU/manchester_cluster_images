@@ -32,20 +32,12 @@ bird_clusters = map_dfr(bird_cluster_json, row_to_df)
 ```
 
 ```{r}
-insect_plant_clusters =
-  insect_plant_clusters %>%
-  mutate(
-    colour = colours_by_id[as.character(cluster_id)]
-  )
+insect_plant_clusters = insect_plant_clusters %>% append_insect_plant_palette()
 insect_plant_clusters
 ```
 
 ```{r}
-BIRD_CLUSTER_LIGHTEN_FACTOR = 0.4
-
-bird_clusters = bird_clusters %>% left_join((insect_plant_clusters %>% dplyr::select(cluster_name, colour)), by = 'cluster_name')
-bird_clusters$colour[is.na(bird_clusters$colour)] = COLOUR_CLUSTER_ALT
-bird_clusters$colour = colorspace::lighten(bird_clusters$colour, amount = BIRD_CLUSTER_LIGHTEN_FACTOR)
+bird_clusters = bird_clusters %>% append_bird_palette(insect_plant_clusters)
 bird_clusters
 ```
 

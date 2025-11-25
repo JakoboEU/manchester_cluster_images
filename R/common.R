@@ -6,7 +6,7 @@ library(tibble)
 library(purrr)
 library(tidyverse)
 
-IMAGE_DIRECTORY="/Users/james/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
+IMAGE_DIRECTORY="/Users/jamese.richardson/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
 
 INPUT_DIR = 'input'
 
@@ -82,3 +82,19 @@ colours_by_id =
     `7` = COLOUR_CLUSTER_7,
     `8` = COLOUR_CLUSTER_8
   )
+
+append_insect_plant_palette = function(insect_plant_clusters) {
+  insect_plant_clusters %>%
+    mutate(
+      colour = colours_by_id[as.character(cluster_id)]
+    )
+}
+
+BIRD_CLUSTER_LIGHTEN_FACTOR = 0.4
+
+append_bird_palette = function(bird_clusters, insect_plant_clusters) {
+  bird_clusters = bird_clusters %>% left_join((insect_plant_clusters %>% dplyr::select(cluster_name, colour)), by = 'cluster_name')
+  bird_clusters$colour[is.na(bird_clusters$colour)] = COLOUR_CLUSTER_ALT
+  bird_clusters$colour = colorspace::lighten(bird_clusters$colour, amount = BIRD_CLUSTER_LIGHTEN_FACTOR)
+  bird_clusters
+}
