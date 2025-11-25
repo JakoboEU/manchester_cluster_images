@@ -203,7 +203,7 @@ richness_by_cluster = function(comm, meta)
 ```
 
 ### Insects
-With any_butterfly, any_hoverfly, etc.
+**With any_butterfly, any_hoverfly, etc.**
 ```{r}
 insect_a_richness = richness_by_cluster(insect_a_presence, insect_plants_plots)
 insect_a_richness
@@ -214,7 +214,13 @@ alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
 
 Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
-With species only
+**With species only**
+Which set of clusters give more compositionally diverse plots for bird species?
+```{r}
+richness_by_cluster(insect_b_presence, bird_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(insect_b_presence, insect_plants_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+```
+
 ```{r}
 insect_b_richness = richness_by_cluster(insect_b_presence, insect_plants_plots)
 insect_b_richness
@@ -226,6 +232,7 @@ alpha_anova_by_cluster(insect_b_presence, insect_plants_plots)
 
 Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.27, p = -0.12, DF = 402)
 
+**Generic species groups**
 ```{r}
 insect_c_richness = richness_by_cluster(insect_c_presence, insect_plants_plots)
 insect_c_richness
@@ -237,6 +244,12 @@ alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
 Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 ### Plants
+Which set of clusters give more compositionally diverse plots for bird species?
+```{r}
+richness_by_cluster(plant_presence, bird_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(plant_presence, insect_plants_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+```
+
 ```{r}
 plant_richness = richness_by_cluster(plant_presence, insect_plants_plots)
 plant_richness
@@ -516,12 +529,24 @@ set.seed(PERMANOVA_SEED)
 insect_c_adonis_res = adonis2(insect_c_dist_jac ~ cluster_id, data = insect_c_meta, permutations = 999)
 insect_c_adonis_res
 ```
+Let's check insects (species only) against the bird clusters
+```{r}
+insect_b2_dist_jac = dist_jac(insect_b_presence_num)
+insect_b2_meta = bird_plots %>% filter(plot_id %in% insect_b_presence_num$plot_id) %>% arrange(plot_id)
+adonis2(insect_b2_dist_jac ~ cluster_id, data = insect_b2_meta, permutations = 999)
+```
 
 ### Plants
 ```{r}
 set.seed(PERMANOVA_SEED)
 plant_adonis_res = adonis2(plant_dist_jac ~ cluster_id, data = plant_meta, permutations = 999)
 plant_adonis_res
+```
+Let's check plants against the bird clusters
+```{r}
+plant2_dist_jac = dist_jac(plant_presence_num)
+plant2_meta = bird_plots %>% filter(plot_id %in% plant_presence_num$plot_id) %>% arrange(plot_id)
+adonis2(plant2_dist_jac ~ cluster_id, data = plant2_meta, permutations = 999)
 ```
 
 ## Birds
@@ -728,6 +753,15 @@ insect_b_turnover = turnover(insect_b_beta_pair, 'insect')
 insect_b_turnover
 ```
 
+Compare with insects (species only) using bird clusters
+```{r}
+beta.multi(beta_core(insect_b_presence, bird_plots)) 
+```
+ * Turnover share = βSIM / βSOR ≈ 0.5455 / 0.6861 ≈ 0.80 → ~80% of total beta diversity
+ * Nestedness share = βSNE / βSOR ≈ 0.1406 / 0.6861 ≈ 0.20 → ~20% of total beta diversity
+
+So, most of the compositional variation among sites is due to species replacement rather than sites being species-poor subsets of richer ones.
+
 ```{r}
 insect_c_beta_core = beta_core(insect_c_presence, insect_plants_plots)
 
@@ -772,6 +806,13 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
 plant_turnover = turnover(plant_beta_pair, 'plant')
 plant_turnover
 ```
+Compare with plants using bird clusters
+```{r}
+beta.multi(beta_core(plant_presence, bird_plots)) 
+```
+Turnover is about two-thirds of total beta diversity here. 
+ * Turnover (βSIM) = 0.311, Share of total βSOR: 0.311 / 0.460 ≈ 0.68 → ~68%
+ * Nestedness (βSNE) = 0.149 Share of total βSOR: 0.149 / 0.460 ≈ 0.32 → ~32%
 
 ### Birds
 ```{r}

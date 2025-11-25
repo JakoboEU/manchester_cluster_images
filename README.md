@@ -51,6 +51,16 @@ Plot-level insect species richness was low and very similar across habitat clust
 
 Despite these differences in γ and β within clusters, insect community composition showed only a weak, non-significant tendency to vary among clusters (PERMANOVA on Jaccard distances: R² ≈ 0.07, F₈,₁₂₇ ≈ 1.23, p = 0.089), and multivariate dispersion did not differ among clusters (PERMDISP: F₈,₁₂₇ ≈ 0.55, p = 0.82). Overall β-diversity across all sites was high (βSOR ≈ 0.66), driven mainly by species turnover (βSIM ≈ 0.54; ~82% of βSOR) rather than nestedness (βSNE ≈ 0.12; ~18%), indicating that sites tend to host different species rather than simply poorer subsets of a common fauna.
 
+#### Do the 120 x 120 m clusters work?
+The PERMANOVA had R2 at 0.090 and so more variation in species composition is explained between clusters is explained, and the p-value is < 0.001
+
+ * Turnover share = βSIM / βSOR ≈ 0.5455 / 0.6861 ≈ 0.80 → ~80% of total beta diversity
+ * Nestedness share = βSNE / βSOR ≈ 0.1406 / 0.6861 ≈ 0.20 → ~20% of total beta diversity
+
+Turnover decreases, so more nestedness in sites.
+
+Mean beta whittikar decreases from 5.57 to 5.39
+
 ### Insects (with grouped taxa)
 Includes any white-tailed bumblebee, any red-tailed bumblebee, any small white butterfly, and any blue butterfly
 And removes any species within those groupings.
@@ -106,6 +116,17 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
 Plant species richness varied strongly among habitat clusters (Table X). Mean plot‐level richness ranged from about 7–8 species in impervious / hard-standing and short turf / intensively managed lawn to ~11–12 species in mature large-tree canopy / woodland, mixed multi-layer woodland, parkland — mature trees over grass, and shrub–small-tree mosaic / young scrub-woodland. Cluster-level γ-richness showed the same pattern (ANOVA on γ: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey tests indicating that impervious / hard-standing and short turf / intensively managed lawn supported significantly lower γ-richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland. Within-cluster βWhittaker was highest for impervious / hard-standing and short turf, indicating substantial among-plot variation even in these species-poor habitat types.
 
 Plant community composition also differed significantly among clusters (PERMANOVA on Jaccard dissimilarities: R² ≈ 0.069, F₈,₃₉₅ ≈ 3.65, p = 0.001), and multivariate dispersion varied between clusters (PERMDISP: F₈,₃₉₅ ≈ 3.15, p ≈ 0.0018), suggesting that clusters capture both shifts in mean composition and differences in within-cluster heterogeneity. Overall multi-site β-diversity was moderate (βSOR ≈ 0.40), with most variation due to turnover (βSIM ≈ 0.26; ~63% of βSOR) and the remainder due to nestedness (~37%). Ecologically, this implies that some structurally complex, less intensively managed clusters act as species-rich “core” floras, while more simplified habitats often hold species-poor subsets of these communities, with additional true species replacement among clusters.
+
+#### Do the 120 x 120 m clusters work?
+The PERMANOVA had R2 at 0.079 and so more variation in species composition is explained between clusters is explained, and the p-value is < 0.001
+
+Turnover is about two-thirds of total beta diversity here. 
+ * Turnover (βSIM) = 0.311, Share of total βSOR: 0.311 / 0.460 ≈ 0.68 → ~68%
+ * Nestedness (βSNE) = 0.149 Share of total βSOR: 0.149 / 0.460 ≈ 0.32 → ~32%
+
+Turnover increases, and nestedness decreases.
+
+Mean beta whittikar decreases from 4.76 to 4.65
 
 ## Birds 
 
