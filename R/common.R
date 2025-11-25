@@ -37,6 +37,12 @@ BIRD_PRESENCE = 'bird-presence.csv'
 
 exclude_non_species = function(insect_df) {insect_df %>% filter(!str_starts(species, "Any_"))}
 
+include_grouped_taxa = function(insect_df) {
+  insect_df %>% 
+    filter(!(species %in% c('Any_Butterfly', 'Any_Bumblebee', 'Any_Hoverfly'))) %>%
+    filter(!(species %in% c('White_tailed_bumblebee', 'Heath_bumblebee', 'Buff_tailed_bumblebee', 'Garden_bumblebee')))  %>%
+    filter(!(species %in% c('Early_bumblebee', 'Red_tailed_bumblebee')))
+}
 
 to_presence_dataframe = function(presence_data) {
   presence_data %>% dplyr::mutate(present = T) %>% pivot_wider(id_cols = title, names_from = species, values_from = present, values_fill = F)

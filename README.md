@@ -22,8 +22,6 @@ Across habitat clusters, insect beta diversity (multi-site Sørensen) was modera
  * Turnover share ≈ 0.46 / 0.589 ≈ 78%
  * Nestedness share ≈ 22%
 
-**Turnover**
-![Insect turnover](output/insect_a_turnover.jpg)
 
 ### Insects (species only)
 
@@ -45,8 +43,29 @@ Across the set of sites, overall compositional heterogeneity was high (multi-sit
  * Turnover share ≈ 0.5407 / 0.6565 ≈ 0.82 → ~82% of beta
  * Nestedness share ≈ 0.1158 / 0.6565 ≈ 0.18 → ~18% of beta
 
-**Turnover**
-![Insect (species only) turnover](output/insect_b_turnover.jpg)
+
+### Insects (with grouped taxa)
+Includes any white-tailed bumblebee, any red-tailed bumblebee, any small white butterfly, and any blue butterfly
+And removes any species within those groupings.
+
+| Cluster                                   | mean_alpha | sd_alpha  | n_plots | gamma | beta_whittaker |
+|-------------------------------------------|-----------:|----------:|--------:|------:|---------------:|
+| amenity grassland / meadow                | 1.736842   | 1.0049663 |      38 |    11 |        5.333333 |
+| built-dominated urban with vegetated fragments | 1.750000   | 0.9665457 |      20 |     8 |        3.571429 |
+| grass with scattered trees (residential/greenspace) | 1.450000   | 0.9594336 |      40 |     8 |        4.517241 |
+| impervious / hard-standing                | 1.620690   | 0.9143608 |      58 |    10 |        5.170213 |
+| mature large-tree canopy / woodland       | 1.772727   | 1.3068252 |      22 |    11 |        5.205128 |
+| mixed multi-layer woodland                | 2.100000   | 1.2134306 |      30 |     9 |        3.285714 |
+| parkland — mature trees over grass        | 1.815789   | 1.0672148 |      76 |    14 |        6.710145 |
+| short turf / intensively managed lawn     | 1.662500   | 0.9539226 |      80 |    12 |        6.218045 |
+| shrub–small-tree mosaic / young scrub-woodland | 2.106383   | 1.1653334 |      47 |    13 |        5.171717 |
+
+Insect community subset C showed a small but statistically significant effect of habitat cluster on composition (PERMANOVA: R² = 0.064, F = 1.47, P = 0.013), while within-cluster dispersion did not differ among clusters (PERMDISP: F = 0.65, P = 0.74), indicating that clusters differ mainly in their average species composition rather than in how variable they are internally.
+
+Most of the compositional differences between your groups are due to species replacement (clusters having different species) rather than one set of plots being species-poor subsets of another (nestedness).
+ * Turnover ≈ 0.46 / 0.59 ≈ 78% of total dissimilarity
+ * Nestedness ≈ 0.13 / 0.59 ≈ 22% of total dissimilarity
+
 
 ### Plants
 
@@ -70,8 +89,6 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
  * Turnover share ≈ 0.26 / 0.405 ≈ 63%
  * Nestedness share ≈ 37%
 
-**Turnover**
-![Plant turnover](output/plant_turnover.jpg)
 
 ## Birds 
 
@@ -95,8 +112,6 @@ Different clusters tend to support different bird assemblages (species replaceme
  * Turnover share ≈ 0.35 / 0.452 ≈ 78%
  * Nestedness share ≈ 22%
 
-**Turnover**
-![Bird turnover](output/bird_turnover.jpg)
 
 ### Do the 20 x 20 m clusters work?
 Across these sites, overall beta diversity was moderate (multi-site Sørensen βSOR ≈ 0.45). Around 60% of this heterogeneity was due to species turnover (βSIM ≈ 0.27), while about 40% reflected nestedness (βSNE ≈ 0.18). Thus, both species replacement and richer-vs-poorer subset patterns contribute substantially to community differences, with nestedness playing a relatively larger role here than in the more turnover-dominated cases.
@@ -110,9 +125,24 @@ Mean beta whittikar is increased from 3.31 to 3.47
 
 # Clusters
 
-## How Plots move between clusters at different resolutions
-![Plot cluster movement](output/plot_movement_between_clusters.jpg)
+## Cluster Definitions
 
+### 20 x 20 m Habitat Clusters
+![20 x 20 m habitat clusters](output/figure_1_insects_and_plants.jpg)
+
+### 120 x 120 m Habitat Clusters
+![120 x 120 m habitat clusters](output/figure_1_birds.jpg)
+
+## How Plots move between clusters at different resolutions
+![Plot cluster movement](output/figure_2_plot_movement_between_clusters.jpg)
+
+## Species Composition Amongst Clusters
+![NMDS](output/figure_3_nmds.jpg)
+
+## Turnover
+![NMDS](output/figure_4_turnover.jpg)
+
+# Clusters In Detail
 ## 20 x 20 m Habitat Clusters
 ![Cluster 0](output/insects_and_plants_0.jpg)
 

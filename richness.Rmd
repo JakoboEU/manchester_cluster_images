@@ -9,6 +9,8 @@ source("R/common.R", local = knitr::knit_global())
 library(vegan)
 library(ggplot2)
 library(betapart)
+library(viridis)
+library(scales)
 ```
 
 # Load data
@@ -31,6 +33,10 @@ row_to_df = function(x) {
 
 insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
 insect_plant_clusters
+```
+```{r}
+bird_clusters = map_dfr(bird_cluster_json, row_to_df)
+bird_clusters
 ```
 
 ```{r}
@@ -61,12 +67,34 @@ bird_plots
 
 
 ## Presence Matrix
-
 ```{r}
-insect_a_presence = read_input_csv(INSECT_PRESENCE) %>% to_presence_dataframe() %>% include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% arrange(title) %>% rename(plot_id = title)
-insect_b_presence = exclude_non_species(read_input_csv(INSECT_PRESENCE)) %>% to_presence_dataframe() %>% include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% arrange(title) %>% rename(plot_id = title)
-plant_presence = read_input_csv(PLANT_PRESENCE) %>% to_presence_dataframe() %>% include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% arrange(title) %>% rename(plot_id = title)
-bird_presence = read_input_csv(BIRD_PRESENCE) %>% to_presence_dataframe() %>% include_sites_with_no_presence_record(bird_plots$plot_id) %>% arrange(title) %>% rename(plot_id = title)
+insect_a_presence = read_input_csv(INSECT_PRESENCE) %>% 
+  to_presence_dataframe() %>% 
+  include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% 
+  arrange(title) %>% rename(plot_id = title)
+
+insect_b_presence = exclude_non_species(read_input_csv(INSECT_PRESENCE)) %>% 
+  to_presence_dataframe() %>% 
+  include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% 
+  arrange(title) %>% 
+  rename(plot_id = title)
+
+insect_c_presence = include_grouped_taxa(read_input_csv(INSECT_PRESENCE)) %>% 
+  to_presence_dataframe() %>% 
+  include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% 
+  arrange(title) %>% 
+  rename(plot_id = title)
+
+plant_presence = read_input_csv(PLANT_PRESENCE) %>% 
+  to_presence_dataframe() %>% 
+  include_sites_with_no_presence_record(insect_plants_plots$plot_id) %>% 
+  arrange(title) %>% 
+  rename(plot_id = title)
+
+bird_presence = read_input_csv(BIRD_PRESENCE) %>% 
+  to_presence_dataframe() %>% 
+  include_sites_with_no_presence_record(bird_plots$plot_id) %>% 
+  arrange(title) %>% rename(plot_id = title)
 
 bird_presence
 ```
@@ -122,7 +150,7 @@ gamma_richness_by_cluster = function(comm, meta) {
     mutate(
       gamma = rowSums(across(-cluster_id))
     ) %>%
-    select(cluster_id, gamma)
+    dplyr::select(cluster_id, gamma)
 }
 
 gamma_richness_by_cluster(insect_a_presence, insect_plants_plots)
@@ -168,6 +196,10 @@ With species only
 richness_by_cluster(insect_b_presence, insect_plants_plots)
 ```
 
+```{r}
+richness_by_cluster(insect_c_presence, insect_plants_plots)
+```
+
 ### Plants
 ```{r}
 richness_by_cluster(plant_presence, insect_plants_plots)
@@ -183,6 +215,7 @@ richness_by_cluster(bird_presence, insect_plants_plots) %>% summarise(mean_bw = 
 ```{r}
 richness_by_cluster(bird_presence, bird_plots)
 ```
+
 # Plot-level beta diversity & composition: dissimilarities, ordination, PERMANOVA
 See how composition differs among plots and clusters (ordination, PERMANOVA, dispersion)
 
@@ -190,10 +223,25 @@ Here you treat community composition as multivariate and ask:
 Do plots in different clusters have different species composition? How strong is that effect?
 
 ```{r}
-insect_a_presence_num = read_input_csv(INSECT_PRESENCE) %>% to_presence_as_num_dataframe() %>% rename(plot_id=title)
-insect_b_presence_num = exclude_non_species(read_input_csv(INSECT_PRESENCE)) %>% to_presence_as_num_dataframe() %>% arrange(title) %>% rename(plot_id = title)
-plant_presence_num = read_input_csv(PLANT_PRESENCE) %>% to_presence_as_num_dataframe() %>% arrange(title) %>% rename(plot_id = title)
-bird_presence_num = read_input_csv(BIRD_PRESENCE) %>% to_presence_as_num_dataframe() %>% arrange(title) %>% rename(plot_id = title)
+insect_a_presence_num = read_input_csv(INSECT_PRESENCE) %>% 
+  to_presence_as_num_dataframe() %>% 
+  rename(plot_id=title)
+
+insect_b_presence_num = exclude_non_species(read_input_csv(INSECT_PRESENCE)) %>% 
+  to_presence_as_num_dataframe() %>% 
+  arrange(title) %>% rename(plot_id = title)
+
+insect_c_presence_num = include_grouped_taxa(read_input_csv(INSECT_PRESENCE)) %>% 
+  to_presence_as_num_dataframe() %>% 
+  arrange(title) %>% rename(plot_id = title)
+
+plant_presence_num = read_input_csv(PLANT_PRESENCE) %>% 
+  to_presence_as_num_dataframe() %>% 
+  arrange(title) %>% rename(plot_id = title)
+
+bird_presence_num = read_input_csv(BIRD_PRESENCE) %>% 
+  to_presence_as_num_dataframe() %>% 
+  arrange(title) %>% rename(plot_id = title)
 
 bird_presence_num
 ```
@@ -202,11 +250,22 @@ bird_presence_num
 PERMANOVA: This tests whether cluster identity explains significant variation in community composition (i.e. beta diversity among plots)
 
 ```{r}
-dist_jac = function(comm) {
-  vegdist(comm %>% arrange(plot_id) %>% dplyr::select(-plot_id), method = "jaccard", binary = TRUE)
+dist_jac = function(comm, exclusions = c()) {
+  vegdist(comm %>% filter(!(plot_id %in% exclusions)) %>% arrange(plot_id) %>% dplyr::select(-plot_id), method = "jaccard", binary = TRUE)
 }
 
-ordination = function(dist_jac, meta) {
+insect_plant_clusters = append_insect_plant_palette(insect_plant_clusters)
+insect_plant_cluster_palette = colour_scale(insect_plant_clusters)
+
+build_exclusion_msg = function(exclusions) {
+  if (length(exclusions) == 0) {
+    return('No excluded sites.')
+  }
+  
+  paste("Excluded sites =", paste(exclusions, collapse = ", "))
+}
+
+ordination = function(dist_jac, meta, colour_scale, taxa, cluster, exclusions = c()) {
   set.seed(15234)
   # NMDS on plots
   set.seed(123)
@@ -219,40 +278,120 @@ ordination = function(dist_jac, meta) {
     geom_point() +
     theme_minimal() +
     labs(
-      title = "NMDS of species composition by cluster",
+      title = paste("NMDS of", taxa, "species composition"),
+      subtitle = build_exclusion_msg(exclusions),
       colour = "Cluster"
-    )
+    ) + 
+    colour_scale
 }
+```
 
+### Insects
+```{r}
 insect_a_dist_jac = dist_jac(insect_a_presence_num)
 insect_a_meta = insect_plants_plots %>% filter(plot_id %in% insect_a_presence_num$plot_id) %>% arrange(plot_id)
-ordination(insect_a_dist_jac, insect_a_meta)
+insect_a_ord = ordination(insect_a_dist_jac, insect_a_meta, insect_plant_cluster_palette, taxa = 'insect', cluster = '20 x 20 m')
+insect_a_ord
 ```
+
 ```{r}
 insect_b_dist_jac = dist_jac(insect_b_presence_num)
 insect_b_meta = insect_plants_plots %>% filter(plot_id %in% insect_b_presence_num$plot_id) %>% arrange(plot_id)
-ordination(insect_b_dist_jac, insect_b_meta)
+insect_b_ord = ordination(insect_b_dist_jac, insect_b_meta, insect_plant_cluster_palette, taxa = 'insect', cluster = '20 x 20 m')
+insect_b_ord
 ```
 
 
 ```{r}
-plant_dist_jac = dist_jac(plant_presence_num)
-plant_meta = insect_plants_plots %>% filter(plot_id %in% plant_presence_num$plot_id) %>% arrange(plot_id)
-ordination(plant_dist_jac, plant_meta)
+insect_c_dist_jac = dist_jac(insect_c_presence_num)
+insect_c_meta = insect_plants_plots %>% filter(plot_id %in% insect_c_presence_num$plot_id) %>% arrange(plot_id)
+insect_c_ord = ordination(insect_c_dist_jac, insect_c_meta, insect_plant_cluster_palette, taxa = 'insect', cluster = '20 x 20 m')
+insect_c_ord
 ```
 
-
+### Plants
 ```{r}
-bird_dist_jac = dist_jac(bird_presence_num)
-bird_meta = bird_plots %>% filter(plot_id %in% bird_presence_num$plot_id) %>% arrange(plot_id)
-ordination(bird_dist_jac, bird_meta)
+PLANT_EXCLUSIONS = c('663 6')
+plant_dist_jac = dist_jac(plant_presence_num, PLANT_EXCLUSIONS)
+plant_meta = insect_plants_plots %>% filter(plot_id %in% plant_presence_num$plot_id) %>% filter(!(plot_id %in% PLANT_EXCLUSIONS)) %>% arrange(plot_id)
+plant_ord = ordination(plant_dist_jac, plant_meta, insect_plant_cluster_palette, taxa = 'plant', cluster = '20 x 20 m', PLANT_EXCLUSIONS)
+plant_ord
+```
+
+### Birds
+```{r}
+bird_clusters = append_insect_plant_palette(bird_clusters)
+bird_cluster_palette = colour_scale(bird_clusters)
+
+BIRD_EXCLUSIONS = c('875 4')
+
+bird_dist_jac = dist_jac(bird_presence_num, BIRD_EXCLUSIONS)
+bird_meta = bird_plots %>% filter(plot_id %in% bird_presence_num$plot_id) %>% filter(!(plot_id %in% BIRD_EXCLUSIONS)) %>% arrange(plot_id)
+bird_ord = ordination(bird_dist_jac, bird_meta, bird_cluster_palette, taxa = 'bird', cluster = '120 x 120 m', BIRD_EXCLUSIONS)
+bird_ord
+```
+### Figure
+```{r}
+theme_text_sizes = theme(legend.title = element_text(size = 8), legend.subtitle = element_text(size = 6))
+
+axis_text = function(required) {
+  if (required) {
+    return(element_text())
+  } else {
+    return(element_blank())
+  }
+}
+
+nmds_part_theme = function(include_legend_position = T, include_y_axis = T) {
+  legend_position = ifelse(include_legend_position, 'right', 'none')
+  y_axis_text = axis_text(include_y_axis)
+  
+  theme(
+    plot.title = element_text(size = 8), 
+    plot.subtitle = element_text(size = 6),
+    legend.position = legend_position,
+    axis.title.y = y_axis_text
+  )
+}
+
+legend1 = ggpubr::get_legend(insect_b_ord)
+
+row1 = cowplot::plot_grid(
+  insect_b_ord + nmds_part_theme(F, T),
+  plant_ord + nmds_part_theme(F, F), 
+  legend1,
+  ncol = 3)
+
+legend2 = ggpubr::get_legend(bird_ord)
+
+row2 = cowplot::plot_grid(
+  bird_ord + nmds_part_theme(F, T),
+  legend2,
+  NULL,
+  ncol = 3
+)
+
+jpeg('output/figure_3_nmds.jpg', width = 2700, height = 2100, units = "px", res = 300)
+cowplot::plot_grid(
+  cowplot::ggdraw() + cowplot::draw_label("Clustered 20 x 20 m Habitat", size = 16),
+  row1,
+  cowplot::ggdraw() + cowplot::draw_label("Clustered 120 x 120 m Habitat", size = 16),
+  row2,
+  ncol = 1,
+  rel_heights = c(1, 10, 1, 10))
+dev.off()
 ```
 
 ## PERMANOVA: “Do clusters differ in composition?”
 This tests whether cluster identity explains significant variation in community composition (i.e. beta diversity among plots).
 
+### Insects
 ```{r}
-set.seed(42432)
+PERMANOVA_SEED = 42432
+```
+
+```{r}
+set.seed(PERMANOVA_SEED)
 insect_a_adonis_res = adonis2(insect_a_dist_jac ~ cluster_id, data = insect_a_meta, permutations = 999)
 insect_a_adonis_res
 ```
@@ -267,19 +406,27 @@ But the effect size is modest:
 * R² ≈ 0.068 means cluster identity explains a small but real fraction of community variation.
 
 ```{r}
-set.seed(42432)
+set.seed(PERMANOVA_SEED)
 insect_b_adonis_res = adonis2(insect_b_dist_jac ~ cluster_id, data = insect_b_meta, permutations = 999)
 insect_b_adonis_res
 ```
 
 ```{r}
-set.seed(42432)
+set.seed(PERMANOVA_SEED)
+insect_c_adonis_res = adonis2(insect_c_dist_jac ~ cluster_id, data = insect_c_meta, permutations = 999)
+insect_c_adonis_res
+```
+
+### Plants
+```{r}
+set.seed(PERMANOVA_SEED)
 plant_adonis_res = adonis2(plant_dist_jac ~ cluster_id, data = plant_meta, permutations = 999)
 plant_adonis_res
 ```
 
+## Birds
 ```{r}
-set.seed(42432)
+set.seed(PERMANOVA_SEED)
 bird_adonis_res = adonis2(bird_dist_jac ~ cluster_id, data = bird_meta, permutations = 999)
 bird_adonis_res
 ```
@@ -295,6 +442,7 @@ adonis2(bird2_dist_jac ~ cluster_id, data = bird2_meta, permutations = 999)
 ## Beta dispersion (are some clusters more heterogeneous?)
 This tells you if some clusters contain more internally variable plots than others (higher within-cluster beta).
 
+### Insects
 ```{r}
 insect_a_disp = betadisper(insect_a_dist_jac, group = insect_a_meta$cluster_id)
 anova(insect_a_disp)               # do clusters differ in dispersion?
@@ -320,6 +468,13 @@ anova(insect_b_disp)               # do clusters differ in dispersion?
 
 
 ```{r}
+insect_c_disp = betadisper(insect_c_dist_jac, group = insect_c_meta$cluster_id)
+anova(insect_c_disp)               # do clusters differ in dispersion?
+#TukeyHSD(insect_b_disp)            # pairwise comparisons
+```
+
+### Plants
+```{r}
 plant_disp = betadisper(plant_dist_jac, group = plant_meta$cluster_id)
 anova(plant_disp)               # do clusters differ in dispersion?
 #TukeyHSD(plant_disp)            # pairwise comparisons
@@ -343,6 +498,7 @@ ggplot(plant_disp_df, aes(x = cluster_id, y = distance)) +
   ) + theme(axis.text.x = element_text(angle = 40, vjust = 0.5, hjust=1))
 ```
 
+### Birds
 ```{r}
 bird_disp = betadisper(bird_dist_jac, group = bird_meta$cluster_id)
 anova(bird_disp)               # do clusters differ in dispersion?
@@ -377,7 +533,48 @@ beta_core = function(comm, meta) {
 
   betapart.core(cluster_comm)
 }
+```
 
+```{r}
+scale_fill_turnover = function(...) {
+  scale_fill_viridis_c(
+    option = "C",          # "viridis" option; colour-blind-friendly
+    limits = c(0, 0.7),    # fixed min / max
+    oob    = squish,       # clamp any values outside 0–0.7
+    breaks = seq(0, 0.7, 0.1),
+    name   = expression(beta[SIM]~"turnover"),
+    ...
+  )
+}
+
+turnover = function(beta_pair, species) {
+  turnover_mat = as.matrix(beta_pair$beta.sim)
+  
+  turnover_df =
+    as.data.frame(turnover_mat) %>%
+    rownames_to_column("cluster_from") %>%
+    pivot_longer(
+      cols = -cluster_from,
+      names_to = "cluster_to",
+      values_to = "turnover"
+    )
+  
+  ggplot(turnover_df, aes(x = cluster_from, y = cluster_to, fill = turnover)) +
+    geom_tile() +
+    theme_minimal() +
+    scale_fill_turnover() +
+    labs(
+      title = paste("Pairwise", species, "turnover"),
+      x = "Cluster",
+      y = "Cluster",
+      fill = "Turnover"
+    ) + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+}
+```
+
+### Insects
+```{r}
 insect_a_beta_core = beta_core(insect_a_presence, insect_plants_plots)
 ```
 
@@ -388,6 +585,7 @@ insect_a_beta_multi = beta.multi(insect_a_beta_core)  # overall metrics
 
 insect_a_beta_multi   # overall turnover vs nestedness across all clusters
 ```
+
 Turnover share ≈ 0.46 / 0.589 ≈ 78%
 
 Nestedness share ≈ 22%
@@ -406,31 +604,8 @@ This directly answers:
  * “Which cluster pairs are more like nested subsets (high nestedness, low turnover)?”
  
 ```{r}
-turnover = function(beta_pair) {
-  turnover_mat = as.matrix(beta_pair$beta.sim)
-  
-  turnover_df =
-    as.data.frame(turnover_mat) %>%
-    rownames_to_column("cluster_from") %>%
-    pivot_longer(
-      cols = -cluster_from,
-      names_to = "cluster_to",
-      values_to = "turnover"
-    )
-  
-  ggplot(turnover_df, aes(x = cluster_from, y = cluster_to, fill = turnover)) +
-    geom_tile() +
-    scale_fill_viridis_c() +
-    theme_minimal() +
-    labs(
-      title = "Pairwise species turnover between clusters",
-      x = "Cluster",
-      y = "Cluster",
-      fill = "Turnover\n(beta.sim)"
-    ) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-}
-turnover(insect_a_beta_pair)
-ggsave('output/insect_a_turnover.jpg')
+insect_a_turnover = turnover(insect_a_beta_pair, 'insect')
+insect_a_turnover
 ```
 
 ```{r}
@@ -449,10 +624,33 @@ Nestedness share ≈ 0.1158 / 0.6565 ≈ 0.18 → ~18% of beta
 Across the set of sites, overall compositional heterogeneity was high (multi-site Sørensen βSOR ≈ 0.66). Most of this beta diversity was attributable to species turnover (βSIM ≈ 0.54, ~82% of βSOR), with a smaller contribution of nestedness (βSNE ≈ 0.12, ~18%). This indicates that sites/clusters mainly differ by hosting different species, rather than simply representing poorer subsets of a common species pool.
 
 ```{r}
-turnover(insect_b_beta_pair)
-ggsave('output/insect_b_turnover.jpg')
+insect_b_turnover = turnover(insect_b_beta_pair, 'insect')
+insect_b_turnover
 ```
 
+```{r}
+insect_c_beta_core = beta_core(insect_c_presence, insect_plants_plots)
+
+# 3b. Beta diversity partitioning
+insect_c_beta_pair  = beta.pair(insect_c_beta_core)   # list of matrices
+insect_c_beta_multi = beta.multi(insect_c_beta_core)  # overall metrics
+
+insect_c_beta_multi   # overall turnover vs nestedness across all clusters
+```
+As proportions of total beta:
+
+Turnover ≈ 0.46 / 0.59 ≈ 78% of total dissimilarity
+
+Nestedness ≈ 0.13 / 0.59 ≈ 22% of total dissimilarity
+
+So, most of the compositional differences between your groups are due to species replacement (clusters having different species) rather than one set of plots being species-poor subsets of another (nestedness).
+
+```{r}
+insect_c_turnover = turnover(insect_c_beta_pair, 'insect')
+insect_c_turnover
+```
+
+#### Plants
 ```{r}
 plant_beta_core = beta_core(plant_presence, insect_plants_plots)
 
@@ -471,10 +669,11 @@ Plant communities differ between clusters, but a substantial part of that differ
 Ecologically: this fits a “template” story – certain clusters (e.g. woody, structurally complex, or less intensively managed) may act as species-rich cores, with other clusters sampling a subset of that flora.
 
 ```{r}
-turnover(plant_beta_pair)
-ggsave('output/plant_turnover.jpg')
+plant_turnover = turnover(plant_beta_pair, 'plant')
+plant_turnover
 ```
 
+### Birds
 ```{r}
 bird_beta_core = beta_core(bird_presence, bird_plots)
 
@@ -492,8 +691,8 @@ Different clusters tend to support different bird assemblages (species replaceme
 
 
 ```{r}
-turnover(bird_beta_pair)
-ggsave('output/bird_turnover.jpg')
+bird_turnover = turnover(bird_beta_pair, 'bird')
+bird_turnover
 ```
 
 Compare with birds using insect/plant clusters
@@ -505,4 +704,17 @@ Turnover share ≈ 0.2683 / 0.4462 ≈ 0.60 → ~60% of beta
 Nestedness share ≈ 0.1779 / 0.4462 ≈ 0.40 → ~40% of beta
 
 Across these sites, overall beta diversity was moderate (multi-site Sørensen βSOR ≈ 0.45). Around 60% of this heterogeneity was due to species turnover (βSIM ≈ 0.27), while about 40% reflected nestedness (βSNE ≈ 0.18). Thus, both species replacement and richer-vs-poorer subset patterns contribute substantially to community differences, with nestedness playing a relatively larger role here than in the more turnover-dominated cases.
+
+```{r}
+title_size = element_text(size = 10)
+jpeg('output/figure_4_turnover.jpg', width = 2700, height = 1600, units = "px", res = 300)
+cowplot::plot_grid(
+  insect_b_turnover + theme(legend.position = 'none', plot.title = title_size), 
+  plant_turnover + theme(axis.title.y = element_blank(), axis.text.y = element_blank(), legend.position = 'none', plot.title = title_size), 
+  bird_turnover + theme(axis.title.y = element_blank(), axis.text.y = element_blank(), plot.title = title_size), 
+  ncol = 3,
+  rel_widths = c(18, 6, 10))
+dev.off()
+```
+
 
