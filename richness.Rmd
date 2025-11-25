@@ -129,6 +129,18 @@ alpha_richness_by_cluster(insect_a_presence, insect_plants_plots)
 ```
 
 ```{r}
+alpha_anova_by_cluster = function(comm, meta) {
+  alpha_plot = specnumber(comm)
+  meta$alpha = alpha_plot
+  
+  an = aov(alpha ~ cluster_id, data = meta)
+  summary(an)
+}
+
+alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
+```
+
+```{r}
 alpha_richness_by_cluster(bird_presence, bird_plots)
 ```
 
@@ -188,22 +200,47 @@ richness_by_cluster = function(comm, meta)
 ### Insects
 With any_butterfly, any_hoverfly, etc.
 ```{r}
-richness_by_cluster(insect_a_presence, insect_plants_plots)
+insect_a_richness = richness_by_cluster(insect_a_presence, insect_plants_plots)
+insect_a_richness
 ```
+```{r}
+alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
+```
+
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 With species only
 ```{r}
-richness_by_cluster(insect_b_presence, insect_plants_plots)
+insect_b_richness = richness_by_cluster(insect_b_presence, insect_plants_plots)
+insect_b_richness
 ```
 
 ```{r}
-richness_by_cluster(insect_c_presence, insect_plants_plots)
+alpha_anova_by_cluster(insect_b_presence, insect_plants_plots)
 ```
+
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.27, p = -0.12, DF = 402)
+
+```{r}
+insect_c_richness = richness_by_cluster(insect_c_presence, insect_plants_plots)
+insect_c_richness
+```
+```{r}
+alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
+```
+
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 ### Plants
 ```{r}
-richness_by_cluster(plant_presence, insect_plants_plots)
+plant_richness = richness_by_cluster(plant_presence, insect_plants_plots)
+plant_richness
 ```
+
+```{r}
+alpha_anova_by_cluster(plant_presence, insect_plants_plots)
+```
+Plot-level plant species richness did significantly differ among habitat clusters (ANOVA:F=15.79, p < 0.0001, DF = 402)
 
 ### Birds
 Which set of clusters give more compositionally diverse plots for bird species?
@@ -213,8 +250,14 @@ richness_by_cluster(bird_presence, insect_plants_plots) %>% summarise(mean_bw = 
 ```
 
 ```{r}
-richness_by_cluster(bird_presence, bird_plots)
+bird_richness = richness_by_cluster(bird_presence, bird_plots)
+bird_richness
 ```
+
+```{r}
+alpha_anova_by_cluster(bird_presence, bird_plots)
+```
+Plot-level insect species richness did significantly differ among habitat clusters (ANOVA:F=3.41, p < 0.001, DF = 402)
 
 # Plot-level beta diversity & composition: dissimilarities, ordination, PERMANOVA
 See how composition differs among plots and clusters (ordination, PERMANOVA, dispersion)
