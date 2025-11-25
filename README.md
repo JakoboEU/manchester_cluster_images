@@ -1,7 +1,8 @@
 # Understanding Species within Clusters
 
 ## Clustered habitats at 20 x 20 m
-### Insects (species only)
+### Insects
+Main result is for when full species presence has been recoreded only.
 
 | cluster_id                                   | mean_alpha | sd_alpha  | n_plots | gamma | beta_whittaker |
 |---------------------------------------------|-----------:|----------:|--------:|------:|----------------:|
@@ -38,7 +39,9 @@ Turnover decreases, so more nestedness in sites.
 
 Mean beta whittikar decreases from 5.57 to 5.39
 
-### Insects (all presence)
+#### Insects (all presence)
+Second analysis of insects, using all data available.
+
 Includes species clumped together across plots such as any butterfly, any hoverfly, any bumblebee, as well as, any white-tailed bumblebee, any red-tailed bumblebee and any small white butterfly.
 
 | cluster_id                                   | mean_alpha | sd_alpha | n_plots | gamma | beta_whittaker |
@@ -61,9 +64,10 @@ Across habitat clusters, insect beta diversity (multi-site Sørensen) was modera
 
 Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
-### Insects (with grouped taxa)
-Includes any white-tailed bumblebee, any red-tailed bumblebee, any small white butterfly, and any blue butterfly
-And removes any species within those groupings.
+#### Insects (with grouped taxa)
+Third analysis of insects, drops the any butterfly, any hoverfly, any bumblebee presence records.
+
+Includes any white-tailed bumblebee, any red-tailed bumblebee, any small white butterfly, and any blue butterfly. Removes any species within those groupings.
 
 | Cluster                                   | mean_alpha | sd_alpha  | n_plots | gamma | beta_whittaker |
 |-------------------------------------------|-----------:|----------:|--------:|------:|---------------:|
