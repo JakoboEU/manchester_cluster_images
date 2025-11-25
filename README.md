@@ -182,10 +182,10 @@ Mean beta whittikar is increased from 3.31 to 3.47
 ## How Plots move between clusters at different resolutions
 ![Plot cluster movement](output/figure_2_plot_movement_between_clusters.jpg)
 
-## Species Composition Amongst Clusters
+## Species Composition Amongst Clusters
 ![NMDS](output/figure_3_nmds.jpg)
 
-## Turnover
+## Turnover
 ![NMDS](output/figure_4_turnover.jpg)
 
 # Clusters In Detail
