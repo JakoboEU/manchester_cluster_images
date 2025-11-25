@@ -22,6 +22,7 @@ Across habitat clusters, insect beta diversity (multi-site Sørensen) was modera
  * Turnover share ≈ 0.46 / 0.589 ≈ 78%
  * Nestedness share ≈ 22%
 
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 ### Insects (species only)
 
@@ -36,6 +37,8 @@ Across habitat clusters, insect beta diversity (multi-site Sørensen) was modera
 | parkland — mature trees over grass          |   2.236842 | 0.5625755 |      76 |    14 |        5.258824 |
 | short turf / intensively managed lawn       |   2.150000 | 0.4528391 |      80 |    14 |        5.511628 |
 | shrub–small-tree mosaic / young scrub-woodland |   2.319149 | 0.6628785 |      47 |    15 |        5.467890 |
+
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.27, p = -0.12, DF = 402)
 
 Insect communities showed only a weak, non-significant tendency to differ among habitat clusters (PERMANOVA on Jaccard distances: R² = 0.072, F₈,₁₂₇ = 1.23, p = 0.089), and multivariate dispersion was similar across clusters (PERMDISP: F₈,₁₂₇ = 0.55, p = 0.82).
 
@@ -60,6 +63,8 @@ And removes any species within those groupings.
 | short turf / intensively managed lawn     | 1.662500   | 0.9539226 |      80 |    12 |        6.218045 |
 | shrub–small-tree mosaic / young scrub-woodland | 2.106383   | 1.1653334 |      47 |    13 |        5.171717 |
 
+Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
+
 Insect community subset C showed a small but statistically significant effect of habitat cluster on composition (PERMANOVA: R² = 0.064, F = 1.47, P = 0.013), while within-cluster dispersion did not differ among clusters (PERMDISP: F = 0.65, P = 0.74), indicating that clusters differ mainly in their average species composition rather than in how variable they are internally.
 
 Most of the compositional differences between your groups are due to species replacement (clusters having different species) rather than one set of plots being species-poor subsets of another (nestedness).
@@ -80,6 +85,10 @@ Most of the compositional differences between your groups are due to species rep
 | parkland — mature trees over grass          | 12.210526  | 3.920258 |      76 |    65 |        4.323276 |
 | short turf / intensively managed lawn       |  7.650000  | 3.666820 |      80 |    59 |        6.712418 |
 | shrub–small-tree mosaic / young scrub-woodland | 12.127660 | 3.615288 |      47 |    63 |        4.194737 |
+
+Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey post-hoc tests showing that impervious / hard-standing and short turf / intensively managed lawn plots supported significantly lower gamma richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland clusters.
+
+![Plant gamma richness](output/figure_om2_plant_groups.jpg)
 
 Plant communities also showed significant differences among clusters (PERMANOVA on Jaccard dissimilarities, R² ≈ 0.069, F₈,₃₉₅ ≈ 3.65, p = 0.001). In contrast to insects, multivariate dispersion in plant composition varied significantly between clusters (PERMDISP, F₈,₃₉₅ ≈ 3.15, p ≈ 0.0018), with some vegetation clusters containing much more heterogeneous assemblages than others. This suggests that cluster identity captures both shifts in mean plant composition and differences in within-cluster beta diversity.
 
@@ -105,6 +114,10 @@ Ecologically: this fits a “template” story – certain clusters (e.g. woody,
 | parkland — scattered trees over grass       | 5.393443   | 1.891020 |      61 |    24 |        3.449848 |
 | short turf / intensively managed lawn       | 6.250000   | 2.645751 |      16 |    20 |        2.200000 |
 | shrub–small-tree mosaic / young scrub-woodland | 5.897436 | 2.173947 |      39 |    25 |        3.239130 |
+
+Bird alpha richness differed significantly among habitat clusters (ANOVA: F₈,₄₀₂ = 3.41, p < 0.001), with post-hoc tests indicating that impervious / hard-standing plots supported significantly lower alpha richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and short turf / intensively managed lawn clusters (different Tukey group letters).
+
+![Bird gamma richness](output/figure_om2_bird_groups.jpg)
 
 Bird communities differed significantly, though moderately, among habitat clusters (PERMANOVA on Jaccard distances: R² = 0.072, F₈,₃₉₉ = 3.89, p = 0.001), and there was no evidence that within-cluster dispersion in composition varied between clusters (PERMDISP: F₈,₃₉₉ = 1.60, p = 0.12).
 

@@ -252,6 +252,40 @@ plant_aov = alpha_raw_anova_by_cluster(plant_presence, insect_plants_plots)
 plant_cld_alpha = tukey_groups = agricolae::HSD.test(plant_aov, trt = "cluster_id")
 plant_cld_alpha$groups
 ```
+```{r}
+plot_alpha_richness = function(richess_df, cld, fill_scale) {
+  plot_data = richess_df %>%
+    mutate(
+      se_alpha   = sd_alpha / sqrt(n_plots)
+    ) %>%
+    left_join(cld$groups %>% tibble::rownames_to_column('cluster_id'), by = "cluster_id")
+  
+  ggplot(
+      plot_data,
+      aes(x = reorder(cluster_id, mean_alpha), y = mean_alpha)
+    ) +
+    geom_col(aes(fill = cluster_id), width = 0.7) +
+    geom_errorbar(
+      aes(ymin = mean_alpha - se_alpha,
+          ymax = mean_alpha + se_alpha),
+      width = 0.2
+    ) +
+    geom_text(
+      aes(y = mean_alpha + se_alpha + 0.3, label = groups),
+      size = 3
+    ) +
+    fill_scale +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), legend.position = 'none') +
+    labs(y = 'Mean Alpha Richness', x = 'Cluster')
+}
+```
+
+```{r}
+plot_alpha_richness(plant_richness, plant_cld_alpha, fill_scale(append_insect_plant_palette(insect_plant_clusters)))
+ggsave('output/figure_om2_plant_groups.jpg', height = 2000, width = 2000, units = 'px')
+```
+Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey post-hoc tests showing that impervious / hard-standing and short turf / intensively managed lawn plots supported significantly lower gamma richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland clusters.
 
 ### Birds
 Which set of clusters give more compositionally diverse plots for bird species?
@@ -275,6 +309,12 @@ bird_aov = alpha_raw_anova_by_cluster(bird_presence, bird_plots)
 bird_cld_alpha = tukey_groups = agricolae::HSD.test(bird_aov, trt = "cluster_id")
 bird_cld_alpha$groups
 ```
+
+```{r}
+plot_alpha_richness(bird_richness, bird_cld_alpha, fill_scale(append_bird_palette(bird_clusters, append_insect_plant_palette(insect_plant_clusters))))
+ggsave('output/figure_om2_bird_groups.jpg', height = 2000, width = 2000, units = 'px')
+```
+Bird alpha richness differed significantly among habitat clusters (ANOVA: F₈,₄₀₂ = 3.41, p < 0.001), with post-hoc tests indicating that impervious / hard-standing plots supported significantly lower alpha richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and short turf / intensively managed lawn clusters (different Tukey group letters).
 
 # Plot-level beta diversity & composition: dissimilarities, ordination, PERMANOVA
 See how composition differs among plots and clusters (ordination, PERMANOVA, dispersion)
