@@ -74,7 +74,7 @@ Mean beta whittikar decreases from 5.57 to 5.39
 
 Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey post-hoc tests showing that impervious / hard-standing and short turf / intensively managed lawn plots supported significantly lower gamma richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland clusters.
 
-![Plant gamma richness](output/figure_om2_plant_groups.jpg)
+![Plant gamma richness](output/figure_om_plant_groups_20m_plots.jpg)
 
 Plant communities also showed significant differences among clusters (PERMANOVA on Jaccard dissimilarities, R² ≈ 0.069, F₈,₃₉₅ ≈ 3.65, p = 0.001). In contrast to insects, multivariate dispersion in plant composition varied significantly between clusters (PERMDISP, F₈,₃₉₅ ≈ 3.15, p ≈ 0.0018), with some vegetation clusters containing much more heterogeneous assemblages than others. This suggests that cluster identity captures both shifts in mean plant composition and differences in within-cluster beta diversity.
 
@@ -104,7 +104,7 @@ Plant community composition also differed significantly among clusters (PERMANOV
 
 Plot-level plant species richness significantly differed among habitat clusters (ANOVA:F=17.9, p < 0.001, DF = 402)
 
-![Plant alpha richness 120 x 120 m](output/figure_om2_plant_groups_120m_plots.jpg)
+![Plant alpha richness 120 x 120 m](output/figure_om_plant_groups_120m_plots.jpg)
 
 The PERMANOVA had R2 at 0.079 and so more variation in species composition is explained between clusters is explained, and the p-value is < 0.001
 
@@ -157,7 +157,7 @@ Mean beta whittikar is increased from 3.31 to 3.47
 
 Bird alpha richness differed significantly among habitat clusters (ANOVA: F₈,₄₀₂ = 3.41, p < 0.001), with post-hoc tests indicating that impervious / hard-standing plots supported significantly lower alpha richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and short turf / intensively managed lawn clusters (different Tukey group letters).
 
-![Bird gamma richness](output/figure_om2_bird_groups.jpg)
+![Bird gamma richness](output/figure_om_bird_groups_120m_plots.jpg)
 
 Bird communities differed significantly, though moderately, among habitat clusters (PERMANOVA on Jaccard distances: R² = 0.072, F₈,₃₉₉ = 3.89, p = 0.001), and there was no evidence that within-cluster dispersion in composition varied between clusters (PERMDISP: F₈,₃₉₉ = 1.60, p = 0.12).
 

@@ -326,7 +326,7 @@ plant_cld_alpha$groups
 
 ```{r}
 plot_alpha_richness(plant_richness, plant_cld_alpha, fill_scale(insect_plant_clusters_colour))
-ggsave('output/figure_om2_plant_groups.jpg', height = 2000, width = 2000, units = 'px')
+ggsave('output/figure_om_plant_groups_20m_plots.jpg', height = 2000, width = 2000, units = 'px')
 ```
 Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey post-hoc tests showing that impervious / hard-standing and short turf / intensively managed lawn plots supported significantly lower gamma richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland clusters.
 
@@ -349,7 +349,7 @@ plant2_cld_alpha$groups
 
 ```{r}
 plot_alpha_richness(plant2_richness, plant2_cld_alpha, fill_scale(bird_clusters_colour))
-ggsave('output/figure_om2_plant_groups_120m_plots.jpg', height = 2000, width = 2000, units = 'px')
+ggsave('output/figure_om_plant_groups_120m_plots.jpg', height = 2000, width = 2000, units = 'px')
 ```
 
 ## Birds
@@ -395,7 +395,7 @@ bird_cld_alpha$groups
 
 ```{r}
 plot_alpha_richness(bird_richness, bird_cld_alpha, fill_scale(bird_clusters_colour))
-ggsave('output/figure_om2_bird_groups.jpg', height = 2000, width = 2000, units = 'px')
+ggsave('output/figure_om_bird_groups_120m_plots.jpg', height = 2000, width = 2000, units = 'px')
 ```
 Bird alpha richness differed significantly among habitat clusters (ANOVA: F₈,₄₀₂ = 3.41, p < 0.001), with post-hoc tests indicating that impervious / hard-standing plots supported significantly lower alpha richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and short turf / intensively managed lawn clusters (different Tukey group letters).
 
