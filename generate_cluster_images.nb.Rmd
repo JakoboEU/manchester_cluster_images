@@ -220,7 +220,7 @@ show_insect_plant_representation = function(r_cluster_id) {
 
 ```{r}
 to_output_file = function(cluster_type, cluster_id) {
-  paste('output', paste(paste(cluster_type, cluster_id, sep = '_'), 'jpg', sep = '.'), sep = '/')
+  paste('output/clusters', cluster_type, paste(paste(cluster_type, cluster_id, sep = '_'), 'jpg', sep = '.'), sep = '/')
 }
 
 jpeg(filename=to_output_file('insects_and_plants', 1), width = 3000, height = 2000)

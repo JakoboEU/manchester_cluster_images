@@ -243,39 +243,39 @@ Most of the compositional differences between your groups are due to species rep
 
 # Clusters In Detail
 ## 20 x 20 m Habitat Clusters
-![Cluster 0](output/insects_and_plants_0.jpg)
+![Cluster 0](output/clusters/insects_and_plants/insects_and_plants_0.jpg)
 
-![Cluster 1](output/insects_and_plants_1.jpg)
+![Cluster 1](output/clusters/insects_and_plants/insects_and_plants_1.jpg)
 
-![Cluster 2](output/insects_and_plants_2.jpg)
+![Cluster 2](output/clusters/insects_and_plants/insects_and_plants_2.jpg)
 
-![Cluster 3](output/insects_and_plants_3.jpg)
+![Cluster 3](output/clusters/insects_and_plants/insects_and_plants_3.jpg)
 
-![Cluster 4](output/insects_and_plants_4.jpg)
+![Cluster 4](output/clusters/insects_and_plants/insects_and_plants_4.jpg)
 
-![Cluster 5](output/insects_and_plants_5.jpg)
+![Cluster 5](output/clusters/insects_and_plants/insects_and_plants_5.jpg)
 
-![Cluster 6](output/insects_and_plants_6.jpg)
+![Cluster 6](output/clusters/insects_and_plants/insects_and_plants_6.jpg)
 
-![Cluster 7](output/insects_and_plants_7.jpg)
+![Cluster 7](output/clusters/insects_and_plants/insects_and_plants_7.jpg)
 
-![Cluster 8](output/insects_and_plants_8.jpg)
+![Cluster 8](output/clusters/insects_and_plants/insects_and_plants_8.jpg)
 
 ## 120 x 120 m Habitat Clusters
-![Cluster 0](output/birds_0.jpg)
+![Cluster 0](output/clusters/birds/birds_0.jpg)
 
-![Cluster 1](output/birds_1.jpg)
+![Cluster 1](output/clusters/birds/birds_1.jpg)
 
-![Cluster 2](output/birds_2.jpg)
+![Cluster 2](output/clusters/birds/birds_2.jpg)
 
-![Cluster 3](output/birds_3.jpg)
+![Cluster 3](output/clusters/birds/birds_3.jpg)
 
-![Cluster 4](output/birds_4.jpg)
+![Cluster 4](output/clusters/birds/birds_4.jpg)
 
-![Cluster 5](output/birds_5.jpg)
+![Cluster 5](output/clusters/birds/birds_5.jpg)
 
-![Cluster 6](output/birds_6.jpg)
+![Cluster 6](output/clusters/birds/birds_6.jpg)
 
-![Cluster 7](output/birds_7.jpg)
+![Cluster 7](output/clusters/birds/birds_7.jpg)
 
-![Cluster 8](output/birds_8.jpg)
+![Cluster 8](output/clusters/birds/birds_8.jpg)
