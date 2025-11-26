@@ -200,7 +200,7 @@ insect_plant_cluster_images
 ```
 
 ```{r}
-jpeg('output/figure_1_insects_and_plants.jpg', width = 2100, height = 2700, units = "px", res = 300)
+jpeg('output/figure_1_20m_habitat_plots.jpg', width = 2100, height = 2700, units = "px", res = 300)
 gridExtra::grid.arrange(grobs = list(insect_plant_cluster_images, insect_plant_cluster_map_plot, insect_plant_cluster_makeup + theme(legend.position = 'none')), ncol = 1, heights = c(3, 3, 1))
 dev.off()
 ```
@@ -232,13 +232,7 @@ bird_cluster_makeup
 ```
 
 ```{r}
-jpeg('output/figure_1_birds.jpg', width = 2100, height = 2700, units = "px", res = 300)
+jpeg('output/figure_1_120m_habitat_plots.jpg', width = 2100, height = 2700, units = "px", res = 300)
 gridExtra::grid.arrange(grobs = list(bird_cluster_images, bird_cluster_map_plot, bird_cluster_makeup + theme(legend.position = 'none')), ncol = 1, heights = c(3, 3, 1))
 dev.off()
 ```
-
-# NMDS
-
-
-
-# Turnover

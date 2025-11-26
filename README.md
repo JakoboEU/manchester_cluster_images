@@ -227,10 +227,10 @@ Most of the compositional differences between your groups are due to species rep
 ## Cluster Definitions
 
 ### 20 x 20 m Habitat Clusters
-![20 x 20 m habitat clusters](output/figure_1_insects_and_plants.jpg)
+![20 x 20 m habitat clusters](output/figure_1_20m_habitat_plots.jpg)
 
 ### 120 x 120 m Habitat Clusters
-![120 x 120 m habitat clusters](output/figure_1_birds.jpg)
+![120 x 120 m habitat clusters](output/figure_1_120m_habitat_plots.jpg)
 
 ## How Plots move between clusters at different resolutions
 ![Plot cluster movement](output/figure_2_plot_movement_between_clusters.jpg)
