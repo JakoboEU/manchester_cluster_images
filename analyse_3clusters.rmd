@@ -1,0 +1,171 @@
+---
+title: "9 Clusters defined by 3 clusters"
+output: html_notebook
+---
+
+```{r}
+source("R/common.R", local = knitr::knit_global())
+source("R/externals.R", local = knitr::knit_global())
+library(ggplot2)
+```
+
+```{r}
+insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
+bird_cluster_json = read_input_json(BIRD_CLUSTERS)
+
+row_to_df = function(x) {
+  tibble(
+    cluster_id = as.integer(x$cluster_id),
+    cluster_name = x$cluster_name,
+    representative_plot_image = x$representative_plot_image
+  )
+}
+
+insect_plant_9clusters = map_dfr(insect_plant_cluster_json, row_to_df) %>% append_insect_plant_palette()
+bird_9clusters = map_dfr(bird_cluster_json, row_to_df) %>% append_bird_palette(insect_plant_9clusters)
+```
+
+```{r}
+plots_in_cluster = function(cluster_json, cluster_id) {
+  idx = which(sapply(cluster_json, function(x) x$cluster_id) == cluster_id)
+  if (length(idx) == 0) return(NULL)
+  
+  df = data.frame(plot_id = cluster_json[[idx]]['plots'])
+  df$cluster_id = cluster_id
+  df
+}
+
+plots_in_9cluster_20m = function(cluster_id) plots_in_cluster(insect_plant_cluster_json, cluster_id)
+plots_in_9cluster_120m = function(cluster_id) plots_in_cluster(bird_cluster_json, cluster_id)
+```
+
+```{r}
+plots_20m_to_9cluster = map_dfr(0:9, plots_in_9cluster_20m) %>% 
+  left_join(insect_plant_9clusters, by = 'cluster_id') %>% 
+  dplyr::select(plots, cluster_name) %>% arrange(plots) %>% 
+  rename(plot_id = plots, cluster_id = cluster_name)
+plots_20m_to_9cluster
+```
+
+```{r}
+plots_120m_to_9cluster = map_dfr(0:9, plots_in_9cluster_120m) %>% 
+  left_join(bird_9clusters, by = 'cluster_id') %>% 
+  dplyr::select(plots, cluster_name) %>% arrange(plots) %>% 
+  rename(plot_id = plots, cluster_id = cluster_name)
+plots_120m_to_9cluster
+```
+
+
+```{r}
+cluster3 = function(clusters_filename, predictors_filename) {
+  read_input_csv(clusters_filename) %>% 
+    pivot_longer(names_to='plot_id', cols = -c('k'), values_to = 'cluster_id') %>% 
+    filter(k == 3) %>% 
+    dplyr::select(plot_id, cluster_id) %>% 
+    left_join(read_input_csv(predictors_filename) %>% dplyr::select(title, herb, shrb, smll_tree, lrg_tree, ndvi), by = c('plot_id' = 'title'))
+}
+
+plots_in_cluster3_20m = cluster3('insect-plant-clusters.csv', 'insect-plant-predictors.csv')
+plots_in_cluster3_120m = cluster3('bird-clusters.csv', 'bird-predictors.csv')
+plots_in_cluster3_20m
+```
+
+
+```{r}
+df_20m = plots_in_cluster3_20m %>% 
+        pivot_longer(cols = -c(cluster_id, plot_id), names_to = 'explanatory', values_to = 'value') %>%
+        mutate(
+          cluster_id = as.factor(cluster_id), 
+          explanatory = factor(explanatory, 
+                               levels=c("herb", "shrb", "smll_tree", "lrg_tree", "ndvi"), 
+                               labels=c('Herbaceous\ncover', 'Shrub\ncover', 'Small\ntree cover', 'Large\ntree cover', 'NDVI'))
+        ) %>%
+        arrange(cluster_id, explanatory, plot_id)
+```
+
+```{r}
+ggplot(df_20m, aes(x = explanatory, fill = cluster_id, y = value)) +
+    geom_boxplot() +
+    theme_minimal() +
+    ylim(0, 1) +
+    labs(y = "value", color = "cluster_id", fill = "cluster_id") +
+    scale_x_discrete()
+```
+```{r}
+clusters3_20m = data.frame(cluster3_id = c(0, 1, 2), cluster3_name = c('Woodland and Scrub', 'Impervious surface', 'Amenity Grassland'))
+clusters3_20m
+```
+
+```{r}
+df_120m = plots_in_cluster3_120m %>% 
+        pivot_longer(cols = -c(cluster_id, plot_id), names_to = 'explanatory', values_to = 'value') %>%
+        mutate(
+          cluster_id = as.factor(cluster_id), 
+          explanatory = factor(explanatory, 
+                               levels=c("herb", "shrb", "smll_tree", "lrg_tree", "ndvi"), 
+                               labels=c('Herbaceous\ncover', 'Shrub\ncover', 'Small\ntree cover', 'Large\ntree cover', 'NDVI'))
+        ) %>%
+        arrange(cluster_id, explanatory, plot_id)
+```
+
+```{r}
+ggplot(df_120m, aes(x = explanatory, fill = cluster_id, y = value)) +
+    geom_boxplot() +
+    theme_minimal() +
+    ylim(0, 1) +
+    labs(y = "value", color = "cluster_id", fill = "cluster_id") +
+    scale_x_discrete()
+```
+
+```{r}
+clusters3_120m = data.frame(cluster3_id = c(0, 1, 2), cluster3_name = c('Impervious surface', 'Woodland and Scrub', 'Amenity Grassland'))
+clusters3_120m
+```
+
+```{r}
+plot_20m_data = plots_in_cluster3_20m %>% 
+  dplyr::select(plot_id, cluster_id) %>%
+  left_join(clusters3_20m, by = c('cluster_id' = 'cluster3_id')) %>%
+  dplyr::select(plot_id, cluster3_name) %>%
+  left_join(plots_20m_to_9cluster) %>%
+  rename('cluster9_name' = cluster_id)
+plot_20m_data
+```
+```{r}
+plot_120m_data = plots_in_cluster3_120m %>% 
+  dplyr::select(plot_id, cluster_id) %>%
+  left_join(clusters3_120m, by = c('cluster_id' = 'cluster3_id')) %>%
+  dplyr::select(plot_id, cluster3_name) %>%
+  left_join(plots_120m_to_9cluster) %>%
+  rename('cluster9_name' = cluster_id)
+plot_120m_data
+```
+
+```{r}
+plot_20m = ggplot(plot_20m_data, aes(x = cluster3_name, fill = cluster9_name)) + 
+  geom_bar() + 
+  theme_minimal() +
+  labs(title = 'Clustered 20 x 20 m Habitat', fill = 'Cluster Name') +
+  xlab('Primary Habitat Type') + ylab('Count') +
+  theme(axis.text.x = element_text(angle = 90)) +
+  fill_scale(insect_plant_9clusters)
+plot_20m
+```
+
+
+```{r}
+plot_120m = ggplot(plot_120m_data, aes(x = cluster3_name, fill = cluster9_name)) + 
+  geom_bar() + 
+  theme_minimal() +
+  labs(title = 'Clustered 120 x 120 m Habitat', fill = 'Cluster Name') +
+  xlab('Primary Habitat Type') + ylab('Count') +
+  theme(axis.text.x = element_text(angle = 90)) +
+  fill_scale(bird_9clusters)
+plot_120m
+```
+
+```{r}
+cowplot::plot_grid(plot_20m, plot_120m, ncol=1)
+ggsave('output/figure_om_cluster_3_split.jpg', width = 2100, height = 2700, units = 'px')
+```
+
