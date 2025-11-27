@@ -6,7 +6,7 @@ library(tibble)
 library(purrr)
 library(tidyverse)
 
-IMAGE_DIRECTORY="/Users/james/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
+IMAGE_DIRECTORY="/Users/jamese.richardson/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
 
 INPUT_DIR = 'input'
 
