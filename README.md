@@ -58,7 +58,7 @@ Turnover decreases, so more nestedness in sites.
 Mean beta whittikar decreases from 5.57 to 5.39
 
 
-##Plants
+## Plants
 ### 20 x 20 m Clusters
 | cluster_id                                   | mean_alpha | sd_alpha | n_plots | gamma | beta_whittaker |
 |---------------------------------------------|-----------:|---------:|--------:|------:|----------------:|

@@ -247,7 +247,7 @@ richness_by_cluster(insect_b_presence, insect_plants_plots) %>% summarise(mean_b
 
 ```{r}
 insect_b_richness = richness_by_cluster(insect_b_presence, insect_plants_plots)
-insect_b_richness
+insect_b_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
@@ -259,7 +259,7 @@ Plot-level insect species richness did not differ significantly among habitat cl
 **Richness amongst 120 x 120 m habitat clusters**
 ```{r}
 insect_b2_richness = richness_by_cluster(insect_b_presence, bird_plots)
-insect_b2_richness
+insect_b2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
@@ -310,7 +310,7 @@ richness_by_cluster(plant_presence, insect_plants_plots) %>% summarise(mean_bw =
 **20 x 20 m Clusters**
 ```{r}
 plant_richness = richness_by_cluster(plant_presence, insect_plants_plots)
-plant_richness
+plant_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
@@ -333,7 +333,7 @@ Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄�
 **120 x 201 m Clusters**
 ```{r}
 plant2_richness = richness_by_cluster(plant_presence, bird_plots)
-plant2_richness
+plant2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
@@ -362,7 +362,7 @@ richness_by_cluster(bird_presence, insect_plants_plots) %>% summarise(mean_bw = 
 ### 20 x 20 m Clusters
 ```{r}
 bird2_richness = richness_by_cluster(bird_presence, insect_plants_plots)
-bird2_richness
+bird2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
@@ -379,7 +379,7 @@ bird2_cld_alpha$groups
 ### 120 x 120 m Clusters
 ```{r}
 bird_richness = richness_by_cluster(bird_presence, bird_plots)
-bird_richness
+bird_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
