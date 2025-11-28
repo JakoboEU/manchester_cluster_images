@@ -1,0 +1,108 @@
+---
+title: "Spatial correlation"
+output: html_notebook
+---
+
+```{r}
+source("R/common.R", local = knitr::knit_global())
+source("R/externals.R", local = knitr::knit_global())
+library(spdep)
+library(sf)
+```
+# Plots to clusters
+```{r}
+insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
+bird_cluster_json = read_input_json(BIRD_CLUSTERS)
+
+row_to_df = function(x) {
+  tibble(
+    cluster_id = as.integer(x$cluster_id),
+    cluster_name = x$cluster_name,
+    representative_plot_image = x$representative_plot_image
+  )
+}
+
+insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
+bird_clusters = map_dfr(bird_cluster_json, row_to_df)
+```
+
+```{r}
+plots_in_cluster = function(cluster_json, cluster_id) {
+  idx = which(sapply(cluster_json, function(x) x$cluster_id) == cluster_id)
+  if (length(idx) == 0) return(NULL)
+  
+  df = data.frame(plot_id = cluster_json[[idx]]['plots'])
+  df$cluster_id = cluster_id
+  df
+}
+
+plots_in_cluster_insect_plants = function(cluster_id) plots_in_cluster(insect_plant_cluster_json, cluster_id)
+plots_in_cluster_birds = function(cluster_id) plots_in_cluster(bird_cluster_json, cluster_id)
+```
+
+```{r}
+insect_plants_plots = map_dfr(0:9, plots_in_cluster_insect_plants) %>% 
+  left_join(insect_plant_clusters, by = 'cluster_id') %>% 
+  dplyr::select(plots, cluster_name) %>% arrange(plots) %>% 
+  rename(plot_id = plots, cluster_id = cluster_name) %>%
+  mutate(cluster_id = as.factor(cluster_id)) %>%
+  arrange(plot_id)
+insect_plants_plots
+```
+
+```{r}
+bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>% 
+  left_join(bird_clusters, by = 'cluster_id') %>% 
+  dplyr::select(plots, cluster_name) %>% 
+  rename(plot_id = plots, cluster_id = cluster_name) %>%
+  mutate(cluster_id = as.factor(cluster_id)) %>%
+  arrange(plot_id)
+bird_plots
+```
+
+# Coords of Sites
+```{r}
+survey_squares = st_read(EXTERNAL_SHP_SURVEY_SQUARES) %>% filter(title %in% insect_plants_plots$plot_id) %>% arrange(title)
+survey_squares
+```
+
+```{r}
+coords = st_coordinates(st_centroid(survey_squares))
+```
+
+```{r}
+nb_local = dnearneigh(coords, 0, 500)
+nb_local
+```
+
+```{r}
+lw_local = nb2listw(nb_local, style = "W", zero.policy = TRUE)
+lw_local
+```
+
+```{r}
+nb_broad = dnearneigh(coords, 0, 2500)
+lw_broad = nb2listw(nb_broad, style = "W")
+lw_broad
+```
+
+
+```{r}
+jc_20m_local = joincount.multi(insect_plants_plots$cluster_id, lw_local)
+jc_20m_local
+```
+
+```{r}
+jc_20m_broad = joincount.multi(insect_plants_plots$cluster_id, lw_broad)
+jc_20m_broad
+```
+
+```{r}
+jc_120m_local = joincount.multi(bird_plots$cluster_id, lw_local)
+jc_120m_local
+```
+
+```{r}
+jc_120m_broad = joincount.multi(bird_plots$cluster_id, lw_broad)
+jc_120m_broad
+```
