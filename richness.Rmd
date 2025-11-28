@@ -13,6 +13,7 @@ library(viridis)
 library(scales)
 library(emmeans)
 library(multcompView)
+library(mgcv)
 ```
 
 # Load data
@@ -91,6 +92,13 @@ bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>% left_join(bird_clusters, b
 bird_plots
 ```
 
+## Create nearest neighbours
+```{r}
+survey_squares = st_read(EXTERNAL_SHP_SURVEY_SQUARES) %>% filter(title %in% insect_plants_plots$plot_id) %>% arrange(title)
+coords = st_coordinates(st_centroid(survey_squares))
+nb_local = dnearneigh(coords, 0, 500)
+lw_local = nb2listw(nb_local, style = "W", zero.policy = TRUE)
+```
 
 ## Presence Matrix
 ```{r}
@@ -155,11 +163,19 @@ alpha_richness_by_cluster(insect_a_presence, insect_plants_plots)
 ```
 
 ```{r}
-alpha_raw_anova_by_cluster = function(comm, meta) {
+alpha_anovo_model_by_clusters = function(comm, meta) {
   alpha_plot = specnumber(comm)
   meta$alpha = alpha_plot
-  
-  aov(alpha ~ cluster_id, data = meta)
+  lm(alpha ~ cluster_id, data = meta)
+}
+
+anova_model = function(model) {
+  aov(model)
+}
+
+alpha_raw_anova_by_cluster = function(comm, meta) {
+  model = alpha_anovo_model_by_clusters(comm, meta)
+  anova_model(model)
 }
 
 alpha_anova_by_cluster = function(comm, meta) {
@@ -167,6 +183,21 @@ alpha_anova_by_cluster = function(comm, meta) {
 }
 
 alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
+```
+
+```{r}
+spatial_alpha_anovo_model_by_clusters = function(comm, meta) {
+  alpha_plot = specnumber(comm)
+  meta$alpha = alpha_plot
+  meta$cluster_id = factor(meta$cluster_id)
+  meta$cluster_id = relevel(meta$cluster_id, ref = "impervious / hard-standing")
+  
+  meta$x = coords[,1]
+  meta$y = coords[,2]
+  gam(alpha ~ cluster_id + s(x, y, bs = "gp"), data = meta)
+}
+
+spatial_alpha_anovo_model_by_clusters(insect_a_presence, insect_plants_plots) %>% summary()
 ```
 
 ```{r}
@@ -231,11 +262,13 @@ richness_by_cluster = function(comm, meta, clusters)
 
 ```{r}
 plot_alpha_richness = function(richess_df, cld, fill_scale) {
-  plot_data = richess_df %>%
-    mutate(
-      se_alpha   = sd_alpha / sqrt(n_plots)
-    ) %>%
-    left_join(cld$groups %>% tibble::rownames_to_column('cluster_id'), by = "cluster_id")
+  plot_data = as.data.frame(cld) %>%
+    dplyr::transmute(
+      cluster_id = as.character(cluster_id),
+      mean_alpha = emmean,
+      se_alpha   = SE,
+      groups     = trimws(.group)   # .group often has trailing spaces
+    )
   
   ggplot(
       plot_data,
@@ -278,10 +311,14 @@ insect_b_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
-alpha_anova_by_cluster(insect_b_presence, insect_plants_plots)
+spatial_alpha_anovo_model_by_clusters(insect_b_presence, insect_plants_plots) %>% summary()
 ```
 
-Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.27, p = -0.12, DF = 402)
+```{r}
+insect_b_emm_clusters = emmeans(spatial_alpha_anovo_model_by_clusters(insect_b_presence, insect_plants_plots), ~cluster_id)
+insect_b_cld_clusters = multcomp::cld(insect_b_emm_clusters, adjust = "tukey")
+insect_b_cld_clusters
+```
 
 **Richness amongst 120 x 120 m habitat clusters**
 ```{r}
@@ -290,16 +327,18 @@ insect_b2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
-alpha_anova_by_cluster(insect_b_presence, bird_plots)
+spatial_alpha_anovo_model_by_clusters(insect_b_presence, bird_plots) %>% summary()
 ```
+
+
 ```{r}
-insect_b2_aov = alpha_raw_anova_by_cluster(insect_b_presence, bird_plots)
-insect_b2_cld_alpha = tukey_groups = agricolae::HSD.test(insect_b2_aov, trt = "cluster_id")
-insect_b2_cld_alpha$groups
+insect_b2_emm_clusters = emmeans(spatial_alpha_anovo_model_by_clusters(insect_b_presence, bird_plots), ~cluster_id)
+insect_b2_cld_clusters = multcomp::cld(insect_b2_emm_clusters, adjust = "tukey")
+insect_b2_cld_clusters
 ```
 
 ```{r}
-plot_alpha_richness(insect_b2_richness, insect_b2_cld_alpha, fill_scale(bird_clusters_colour))
+plot_alpha_richness(insect_b2_richness, insect_b2_cld_clusters, fill_scale(bird_clusters_colour))
 ggsave('output/figure_om_insect_groups_120m_plots.jpg', height = 2000, width = 2000, units = 'px') 
 ```
 
@@ -310,10 +349,9 @@ insect_a_richness
 ```
 
 ```{r}
-alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
+spatial_alpha_anovo_model_by_clusters(insect_a_presence, insect_plants_plots) %>% summary()
 ```
 
-Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 **Generic species groups**
 ```{r}
@@ -322,10 +360,8 @@ insect_c_richness
 ```
 
 ```{r}
-alpha_anova_by_cluster(insect_a_presence, insect_plants_plots)
+spatial_alpha_anovo_model_by_clusters(insect_a_presence, insect_plants_plots) %>% summary()
 ```
-
-Plot-level insect species richness did not differ significantly among habitat clusters (ANOVA:F=1.24, p = -0.27, DF = 402)
 
 ### Plants
 Which set of clusters give more compositionally diverse plots for bird species?
@@ -341,21 +377,20 @@ plant_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
-alpha_anova_by_cluster(plant_presence, insect_plants_plots)
-```
-Plot-level plant species richness significantly differed among habitat clusters (ANOVA:F=15.79, p < 0.001, DF = 402)
-
-```{r}
-plant_aov = alpha_raw_anova_by_cluster(plant_presence, insect_plants_plots)
-plant_cld_alpha = agricolae::HSD.test(plant_aov, trt = "cluster_id")
-plant_cld_alpha$groups
+spatial_alpha_anovo_model_by_clusters(plant_presence, insect_plants_plots) %>% summary()
 ```
 
 ```{r}
-plot_alpha_richness(plant_richness, plant_cld_alpha, fill_scale(insect_plant_clusters_colour))
+plant_emm_clusters = emmeans(spatial_alpha_anovo_model_by_clusters(plant_presence, insect_plants_plots), ~cluster_id)
+plant_cld_clusters = multcomp::cld(plant_emm_clusters, adjust = "tukey")
+plant_cld_clusters
+```
+
+```{r}
+plot_alpha_richness(plant_richness, plant_cld_clusters, fill_scale(insect_plant_clusters_colour))
 ggsave('output/figure_om_plant_groups_20m_plots.jpg', height = 2000, width = 2000, units = 'px')
 ```
-Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄₀₂ = 15.79, p < 0.001), with Tukey post-hoc tests showing that impervious / hard-standing and short turf / intensively managed lawn plots supported significantly lower gamma richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and mixed multi-layer woodland clusters.
+
 
 **120 x 201 m Clusters**
 ```{r}
@@ -364,18 +399,17 @@ plant2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
-alpha_anova_by_cluster(plant_presence, bird_plots)
-```
-Plot-level plant species richness significantly differed among habitat clusters (ANOVA:F=17.9, p < 0.001, DF = 402)
-
-```{r}
-plant2_aov = alpha_raw_anova_by_cluster(plant_presence, bird_plots)
-plant2_cld_alpha = agricolae::HSD.test(plant2_aov, trt = "cluster_id")
-plant2_cld_alpha$groups
+spatial_alpha_anovo_model_by_clusters(plant_presence, bird_plots) %>% summary()
 ```
 
 ```{r}
-plot_alpha_richness(plant2_richness, plant2_cld_alpha, fill_scale(bird_clusters_colour))
+plant2_emm_clusters = emmeans(spatial_alpha_anovo_model_by_clusters(plant_presence, bird_plots), ~cluster_id)
+plant2_cld_clusters = multcomp::cld(plant2_emm_clusters, adjust = "tukey")
+plant2_cld_clusters
+```
+
+```{r}
+plot_alpha_richness(plant2_richness, plant2_cld_clusters, fill_scale(bird_clusters_colour))
 ggsave('output/figure_om_plant_groups_120m_plots.jpg', height = 2000, width = 2000, units = 'px')
 ```
 
@@ -393,14 +427,13 @@ bird2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
-alpha_anova_by_cluster(bird_presence, insect_plants_plots)
+spatial_alpha_anovo_model_by_clusters(bird_presence, insect_plants_plots) %>% summary()
 ```
-Plot-level bird species richness significantly differed among habitat clusters (ANOVA:F=2.02, p < = 0.42, DF = 402)
 
 ```{r}
-bird2_aov = alpha_raw_anova_by_cluster(bird_presence, insect_plants_plots)
-bird2_cld_alpha = tukey_groups = agricolae::HSD.test(bird2_aov, trt = "cluster_id")
-bird2_cld_alpha$groups
+bird2_emm_clusters = emmeans(spatial_alpha_anovo_model_by_clusters(bird_presence, insect_plants_plots), ~cluster_id)
+bird2_cld_clusters = multcomp::cld(bird2_emm_clusters, adjust = "tukey")
+bird2_cld_clusters
 ```
 
 ### 120 x 120 m Clusters
@@ -410,21 +443,20 @@ bird_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
 ```{r}
-alpha_anova_by_cluster(bird_presence, bird_plots)
-```
-Plot-level bird species richness significantly differed among habitat clusters (ANOVA:F=3.41, p < 0.001, DF = 402)
-
-```{r}
-bird_aov = alpha_raw_anova_by_cluster(bird_presence, bird_plots)
-bird_cld_alpha = tukey_groups = agricolae::HSD.test(bird_aov, trt = "cluster_id")
-bird_cld_alpha$groups
+spatial_alpha_anovo_model_by_clusters(bird_presence, bird_plots) %>% summary()
 ```
 
 ```{r}
-plot_alpha_richness(bird_richness, bird_cld_alpha, fill_scale(bird_clusters_colour))
+bird_emm_clusters = emmeans(spatial_alpha_anovo_model_by_clusters(bird_presence, bird_plots), ~cluster_id)
+bird_cld_clusters = multcomp::cld(bird_emm_clusters, adjust = "tukey")
+bird_cld_clusters
+```
+
+```{r}
+plot_alpha_richness(bird_richness, bird_cld_clusters, fill_scale(bird_clusters_colour))
 ggsave('output/figure_om_bird_groups_120m_plots.jpg', height = 2000, width = 2000, units = 'px')
 ```
-Bird alpha richness differed significantly among habitat clusters (ANOVA: F₈,₄₀₂ = 3.41, p < 0.001), with post-hoc tests indicating that impervious / hard-standing plots supported significantly lower alpha richness than shrub–small-tree mosaic / young scrub-woodland, parkland — mature trees over grass, and short turf / intensively managed lawn clusters (different Tukey group letters).
+
 
 # Plot-level beta diversity & composition: dissimilarities, ordination, PERMANOVA
 See how composition differs among plots and clusters (ordination, PERMANOVA, dispersion)
