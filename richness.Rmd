@@ -41,6 +41,30 @@ bird_clusters = map_dfr(bird_cluster_json, row_to_df)
 bird_clusters
 ```
 
+Order clusters by NDVI
+```{r}
+bird_clusters = bird_plots %>% 
+  left_join(read_input_csv(BIRD_PREDICTORS) %>% to_ndvi()) %>% 
+  rename('cluster_name' = cluster_id) %>%
+  group_by(cluster_name) %>% 
+  summarise(avg_ndvi = mean(ndvi)) %>%
+  left_join(bird_clusters) %>%
+  arrange(avg_ndvi)
+bird_clusters
+```
+
+
+```{r}
+insect_plant_clusters = insect_plants_plots %>% 
+  left_join(read_input_csv(INSECT_PLANT_PREDICTORS) %>% to_ndvi()) %>% 
+  rename('cluster_name' = cluster_id) %>%
+  group_by(cluster_name) %>% 
+  summarise(avg_ndvi = mean(ndvi)) %>%
+  left_join(insect_plant_clusters) %>%
+  arrange(avg_ndvi)
+insect_plant_clusters
+```
+
 ```{r}
 plots_in_cluster = function(cluster_json, cluster_id) {
   idx = which(sapply(cluster_json, function(x) x$cluster_id) == cluster_id)
@@ -194,12 +218,15 @@ OR
 By what factor is the cluster’s species pool richer than its average plot, minus 1?
 
 ```{r}
-richness_by_cluster = function(comm, meta)
+richness_by_cluster = function(comm, meta, clusters)
   alpha_richness_by_cluster(comm, meta) %>%
   left_join(gamma_richness_by_cluster(comm, meta), by = "cluster_id") %>%
   mutate(
     beta_whittaker = gamma / mean_alpha - 1
-  )
+  ) %>% 
+  left_join(clusters, by = c('cluster_id' = 'cluster_name')) %>%
+  arrange(avg_ndvi) %>%
+  dplyr::select(cluster_id, mean_alpha, sd_alpha, n_plots, gamma, beta_whittaker)
 ```
 
 ```{r}
@@ -241,12 +268,12 @@ bird_clusters_colour = append_bird_palette(bird_clusters %>% dplyr::select('clus
 **With species only**
 Which set of clusters give more compositionally diverse plots for bird species?
 ```{r}
-richness_by_cluster(insect_b_presence, bird_plots) %>% summarise(mean_bw = mean(beta_whittaker))
-richness_by_cluster(insect_b_presence, insect_plants_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(insect_b_presence, bird_plots, bird_clusters) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(insect_b_presence, insect_plants_plots, insect_plant_clusters) %>% summarise(mean_bw = mean(beta_whittaker))
 ```
 
 ```{r}
-insect_b_richness = richness_by_cluster(insect_b_presence, insect_plants_plots)
+insect_b_richness = richness_by_cluster(insect_b_presence, insect_plants_plots, insect_plant_clusters)
 insect_b_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
@@ -258,7 +285,7 @@ Plot-level insect species richness did not differ significantly among habitat cl
 
 **Richness amongst 120 x 120 m habitat clusters**
 ```{r}
-insect_b2_richness = richness_by_cluster(insect_b_presence, bird_plots)
+insect_b2_richness = richness_by_cluster(insect_b_presence, bird_plots, bird_clusters)
 insect_b2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
@@ -278,7 +305,7 @@ ggsave('output/figure_om_insect_groups_120m_plots.jpg', height = 2000, width = 2
 
 **With any_butterfly, any_hoverfly, etc.**
 ```{r}
-insect_a_richness = richness_by_cluster(insect_a_presence, insect_plants_plots)
+insect_a_richness = richness_by_cluster(insect_a_presence, insect_plants_plots, insect_plant_clusters)
 insect_a_richness
 ```
 
@@ -290,7 +317,7 @@ Plot-level insect species richness did not differ significantly among habitat cl
 
 **Generic species groups**
 ```{r}
-insect_c_richness = richness_by_cluster(insect_c_presence, insect_plants_plots)
+insect_c_richness = richness_by_cluster(insect_c_presence, insect_plants_plots, insect_plant_clusters)
 insect_c_richness
 ```
 
@@ -303,13 +330,13 @@ Plot-level insect species richness did not differ significantly among habitat cl
 ### Plants
 Which set of clusters give more compositionally diverse plots for bird species?
 ```{r}
-richness_by_cluster(plant_presence, bird_plots) %>% summarise(mean_bw = mean(beta_whittaker))
-richness_by_cluster(plant_presence, insect_plants_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(plant_presence, bird_plots, bird_clusters) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(plant_presence, insect_plants_plots, insect_plant_clusters) %>% summarise(mean_bw = mean(beta_whittaker))
 ```
 
 **20 x 20 m Clusters**
 ```{r}
-plant_richness = richness_by_cluster(plant_presence, insect_plants_plots)
+plant_richness = richness_by_cluster(plant_presence, insect_plants_plots, insect_plant_clusters)
 plant_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
@@ -332,7 +359,7 @@ Plant gamma richness differed strongly among habitat clusters (ANOVA: F₈,₄�
 
 **120 x 201 m Clusters**
 ```{r}
-plant2_richness = richness_by_cluster(plant_presence, bird_plots)
+plant2_richness = richness_by_cluster(plant_presence, bird_plots, bird_clusters)
 plant2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
@@ -355,13 +382,13 @@ ggsave('output/figure_om_plant_groups_120m_plots.jpg', height = 2000, width = 20
 ## Birds
 Which set of clusters give more compositionally diverse plots for bird species?
 ```{r}
-richness_by_cluster(bird_presence, bird_plots) %>% summarise(mean_bw = mean(beta_whittaker))
-richness_by_cluster(bird_presence, insect_plants_plots) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(bird_presence, bird_plots, bird_clusters) %>% summarise(mean_bw = mean(beta_whittaker))
+richness_by_cluster(bird_presence, insect_plants_plots, insect_plant_clusters) %>% summarise(mean_bw = mean(beta_whittaker))
 ```
 
 ### 20 x 20 m Clusters
 ```{r}
-bird2_richness = richness_by_cluster(bird_presence, insect_plants_plots)
+bird2_richness = richness_by_cluster(bird_presence, insect_plants_plots, insect_plant_clusters)
 bird2_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
@@ -378,7 +405,7 @@ bird2_cld_alpha$groups
 
 ### 120 x 120 m Clusters
 ```{r}
-bird_richness = richness_by_cluster(bird_presence, bird_plots)
+bird_richness = richness_by_cluster(bird_presence, bird_plots, bird_clusters)
 bird_richness %>% mutate(across(where(is.numeric), round, digits=2))
 ```
 
@@ -461,10 +488,10 @@ ordination = function(dist_jac, meta, colour_scale, taxa, cluster, exclusions = 
   ord_data = cbind(meta, scores_sites)
 
   ggplot(ord_data, aes(x = NMDS1, y = NMDS2, colour = cluster_id)) +
-    geom_point() +
+    geom_point(size = 0.5) +
     theme_minimal() +
     labs(
-      title = paste("NMDS of", taxa, "species composition"),
+      title = paste("Clustered", cluster, "habitat"),
       subtitle = build_exclusion_msg(exclusions),
       colour = "Cluster"
     ) + 
@@ -538,45 +565,54 @@ axis_text = function(required) {
   }
 }
 
-nmds_part_theme = function(include_legend_position = T, include_y_axis = T) {
+nmds_part_theme = function(include_legend_position = T, include_x_axis = T, include_y_axis = T) {
   legend_position = ifelse(include_legend_position, 'right', 'none')
   y_axis_text = axis_text(include_y_axis)
+  x_axis_text = axis_text(include_x_axis)
   
   theme(
     plot.title = element_text(size = 8), 
     plot.subtitle = element_text(size = 6),
     legend.position = legend_position,
-    axis.title.y = y_axis_text
+    axis.title.y = y_axis_text,
+    axis.title.x = x_axis_text
   )
 }
 
 legend1 = ggpubr::get_legend(insect_b_ord)
-legend1 = ggpubr::get_legend(insect_b2_ord)
+legend2 = ggpubr::get_legend(insect_b2_ord)
 
-row1 = cowplot::plot_grid(
-  insect_b_ord + nmds_part_theme(F, T),
-  plant_ord + nmds_part_theme(F, F), 
-  bird_ord + nmds_part_theme(F, F), 
+row_nmds_1 = cowplot::plot_grid(
+  insect_b_ord + nmds_part_theme(F, F, T),
+  insect_b2_ord + nmds_part_theme(F, F, F)
+)
+
+row_nmds_2 = cowplot::plot_grid(
+  plant_ord + nmds_part_theme(F, F, T),
+  plant2_ord + nmds_part_theme(F, F, F)
+)
+
+row_nmds_3 = cowplot::plot_grid(
+  bird_ord + nmds_part_theme(F, T, T),
+  bird2_ord + nmds_part_theme(F, T, F)
+)
+
+row_nmds_4 = cowplot::plot_grid(
   legend1,
-  ncol = 4)
+  legend2
+)
 
-legend2 = ggpubr::get_legend(bird_ord)
-
-row2 = cowplot::plot_grid(
-  insect_b2_ord + nmds_part_theme(F, T),
-  plant2_ord + nmds_part_theme(F, F), 
-  bird2_ord + nmds_part_theme(F, F), 
-  legend2,
-  ncol = 4)
-
-jpeg('output/figure_3_nmds.jpg', width = 2700, height = 2100, units = "px", res = 300)
+jpeg('output/figure_3_nmds.jpg', width = 2100, height = 2700, units = "px", res = 300)
 cowplot::plot_grid(
-  cowplot::ggdraw() + cowplot::draw_label("Clustered 20 x 20 m Habitat", size = 16),
-  row1,
-  cowplot::ggdraw() + cowplot::draw_label("Clustered 120 x 120 m Habitat", size = 16),
-  row2,
+  cowplot::ggdraw() + cowplot::draw_label("NMDS of insect species composition", size = 16, hjust = 0.9),
+  row_nmds_1,
+  cowplot::ggdraw() + cowplot::draw_label("NMDS of plant species composition", size = 16, hjust = 0.9),
+  row_nmds_2,
+  cowplot::ggdraw() + cowplot::draw_label("NMDS of bird species composition", size = 16, hjust = 0.9),
+  row_nmds_3,
+  row_nmds_4,
   ncol = 1,
-  rel_heights = c(1, 10, 1, 10))
+  rel_heights = c(1, 10, 1, 10, 1, 10, 12))
 dev.off()
 ```
 
@@ -795,10 +831,10 @@ beta_core = function(comm, meta) {
 ```
 
 ```{r}
-scale_fill_turnover = function(...) {
+scale_fill_turnover = function(..., fixed_max_turnover) {
   scale_fill_viridis_c(
     option = "C",          # "viridis" option; colour-blind-friendly
-    limits = c(0, 0.7),    # fixed min / max
+    limits = c(0, fixed_max_turnover),    # fixed min / max
     oob    = squish,       # clamp any values outside 0–0.7
     breaks = seq(0, 0.7, 0.1),
     name   = expression(beta[SIM]~"turnover"),
@@ -806,7 +842,7 @@ scale_fill_turnover = function(...) {
   )
 }
 
-turnover = function(beta_pair, species) {
+turnover = function(beta_pair, species, cluster, cluster_names, fixed_max_turnover = 0.2) {
   turnover_mat = as.matrix(beta_pair$beta.sim)
   
   turnover_df =
@@ -816,14 +852,27 @@ turnover = function(beta_pair, species) {
       cols = -cluster_from,
       names_to = "cluster_to",
       values_to = "turnover"
+    ) %>% 
+    left_join(cluster_names, by = c('cluster_from' = 'cluster_name')) %>% 
+    rename('cluster_from_ndvi' = avg_ndvi) %>%
+    left_join(cluster_names, by = c('cluster_to' = 'cluster_name')) %>% 
+    rename('cluster_to_ndvi' = avg_ndvi) %>%
+    mutate(
+      # left axis ordered by insect_ndvi
+      cluster_from =
+        fct_reorder(cluster_from, cluster_from_ndvi),
+
+      # right axis ordered by bird_ndvi
+      cluster_to =
+        fct_reorder(cluster_to, desc(cluster_to_ndvi))
     )
   
   ggplot(turnover_df, aes(x = cluster_from, y = cluster_to, fill = turnover)) +
     geom_tile() +
     theme_minimal() +
-    scale_fill_turnover() +
+    scale_fill_turnover(fixed_max_turnover = fixed_max_turnover) +
     labs(
-      title = paste("Pairwise", species, "turnover"),
+      title = paste("Turnover within", cluster, "clustered habitat"),
       x = "Cluster",
       y = "Cluster",
       fill = "Turnover"
@@ -850,7 +899,7 @@ Nestedness share ≈ 0.1158 / 0.6565 ≈ 0.18 → ~18% of beta
 Across the set of sites, overall compositional heterogeneity was high (multi-site Sørensen βSOR ≈ 0.66). Most of this beta diversity was attributable to species turnover (βSIM ≈ 0.54, ~82% of βSOR), with a smaller contribution of nestedness (βSNE ≈ 0.12, ~18%). This indicates that sites/clusters mainly differ by hosting different species, rather than simply representing poorer subsets of a common species pool.
 
 ```{r}
-insect_b_turnover = turnover(insect_b_beta_pair, 'insect')
+insect_b_turnover = turnover(insect_b_beta_pair, 'insect', '20 x 20 m', insect_plant_clusters, fixed_max_turnover = 0.7)
 insect_b_turnover
 ```
 
@@ -870,7 +919,7 @@ insect_b2_beta_multi   # overall turnover vs nestedness across all clusters
  * Nestedness share = βSNE / βSOR ≈ 0.1406 / 0.6861 ≈ 0.20 → ~20% of total beta diversity
  
 ```{r}
-insect_b2_turnover = turnover(insect_b2_beta_pair, 'insect')
+insect_b2_turnover = turnover(insect_b2_beta_pair, 'insect', '120 x 120 m', bird_clusters, fixed_max_turnover = 0.7)
 insect_b2_turnover
 ```
 
@@ -895,7 +944,7 @@ Plant communities differ between clusters, but a substantial part of that differ
 Ecologically: this fits a “template” story – certain clusters (e.g. woody, structurally complex, or less intensively managed) may act as species-rich cores, with other clusters sampling a subset of that flora.
 
 ```{r}
-plant_turnover = turnover(plant_beta_pair, 'plant')
+plant_turnover = turnover(plant_beta_pair, 'plant', '20 x 20 m', insect_plant_clusters)
 plant_turnover
 ```
 Compare with plants using bird clusters
@@ -916,7 +965,7 @@ Turnover is about two-thirds of total beta diversity here.
  * Nestedness (βSNE) = 0.149 Share of total βSOR: 0.149 / 0.460 ≈ 0.32 → ~32%
 
 ```{r}
-plant2_turnover = turnover(plant2_beta_pair, 'plant')
+plant2_turnover = turnover(plant2_beta_pair, 'plant', '120 x 120 m', bird_clusters)
 plant2_turnover
 ```
 
@@ -940,7 +989,7 @@ Across these sites, overall beta diversity was moderate (multi-site Sørensen β
 
 
 ```{r}
-bird_turnover = turnover(bird_beta_pair, 'bird')
+bird_turnover = turnover(bird_beta_pair, 'bird', '20 x 20 m', insect_plant_clusters)
 bird_turnover
 ```
 
@@ -962,7 +1011,7 @@ Nestedness share ≈ 22%
 Different clusters tend to support different bird assemblages (species replacement dominates), with a smaller role for nestedness – some clusters are richer than others, but most of the variation comes from species swapping between habitat types rather than simply adding/removing a subset.
 
 ```{r}
-bird2_turnover = turnover(bird2_beta_pair, 'bird')
+bird2_turnover = turnover(bird2_beta_pair, 'bird', '120 x 120 m', bird_clusters)
 bird2_turnover
 ```
 
@@ -971,29 +1020,42 @@ bird2_turnover
 ```{r}
 title_size = element_text(size = 10)
 label_size = element_text(size = 6)
-rel_widths = c(20, 10, 16)
+rel_widths = c(20, 16)
 
-jpeg('output/figure_4_turnover.jpg', width = 2700, height = 3200, units = "px", res = 300)
-row1 = cowplot::plot_grid(
-  insect_b_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
-  plant_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.title.y = element_blank(), axis.text.y = element_blank(), legend.position = 'none', plot.title = title_size), 
-  bird_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.title.y = element_blank(), axis.text.y = element_blank(), plot.title = title_size), 
-  ncol = 3,
-  rel_widths = rel_widths)
-row2 = cowplot::plot_grid(
-  insect_b2_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
-  plant2_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.title.y = element_blank(), axis.text.y = element_blank(), legend.position = 'none', plot.title = title_size), 
-  bird2_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.title.y = element_blank(), axis.text.y = element_blank(), plot.title = title_size), 
-  ncol = 3,
-  rel_widths = rel_widths)
+jpeg('output/figure_4_turnover.jpg', width = 2100, height = 2700, units = "px", res = 300)
+row_turnover1 = cowplot::plot_grid(
+  
+  insect_b_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
+  insect_b2_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), plot.title = title_size),
+  ncol = 2,
+  rel_widths = rel_widths
+)
+  
+row_turnover2 = cowplot::plot_grid(
+  
+  plant_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
+  plant2_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), plot.title = title_size),
+  ncol = 2,
+  rel_widths = rel_widths
+)
+
+row_turnover3 = cowplot::plot_grid(
+  
+  bird_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
+  bird2_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = element_blank(), plot.title = title_size),
+  ncol = 2,
+  rel_widths = rel_widths
+)
 
 cowplot::plot_grid(
-  cowplot::ggdraw() + cowplot::draw_label("Clustered 20 x 20 m Habitat", size = 16),
-  row1, 
-  cowplot::ggdraw() + cowplot::draw_label("Clustered 120 x 120 m Habitat", size = 16),
-  row2, 
+  cowplot::ggdraw() + cowplot::draw_label("Pairwise insect turnover", size = 16, hjust = 0.9),
+  row_turnover1, 
+  cowplot::ggdraw() + cowplot::draw_label("Pairwise plant turnover", size = 16, hjust = 0.9),
+  row_turnover2,
+  cowplot::ggdraw() + cowplot::draw_label("Pairwise bird turnover", size = 16, hjust = 0.9),
+  row_turnover3,
   ncol = 1,
-  rel_heights = c(1, 10, 1, 10))
+  rel_heights = c(1, 10, 1, 10, 1, 20))
 dev.off()
 ```
 
@@ -1029,7 +1091,7 @@ This directly answers:
  * “Which cluster pairs are more like nested subsets (high nestedness, low turnover)?”
  
 ```{r}
-insect_a_turnover = turnover(insect_a_beta_pair, 'insect')
+insect_a_turnover = turnover(insect_a_beta_pair, 'insect', '20 x 20 m', insect_plant_clusters)
 insect_a_turnover
 ```
 
@@ -1053,7 +1115,7 @@ Nestedness ≈ 0.13 / 0.59 ≈ 22% of total dissimilarity
 So, most of the compositional differences between your groups are due to species replacement (clusters having different species) rather than one set of plots being species-poor subsets of another (nestedness).
 
 ```{r}
-insect_c_turnover = turnover(insect_c_beta_pair, 'insect')
+insect_c_turnover = turnover(insect_c_beta_pair, 'insect', '20 x 20 m', insect_plant_clusters)
 insect_c_turnover
 ```
 
