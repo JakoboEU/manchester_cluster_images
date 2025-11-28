@@ -872,7 +872,7 @@ turnover = function(beta_pair, species, cluster, cluster_names, fixed_max_turnov
     theme_minimal() +
     scale_fill_turnover(fixed_max_turnover = fixed_max_turnover) +
     labs(
-      title = paste("Turnover within", cluster, "clustered habitat"),
+      title = paste(cluster, "clustered habitat"),
       x = "Cluster",
       y = "Cluster",
       fill = "Turnover"
@@ -1026,7 +1026,7 @@ jpeg('output/figure_4_turnover.jpg', width = 2100, height = 2700, units = "px", 
 row_turnover1 = cowplot::plot_grid(
   
   insect_b_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
-  insect_b2_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), plot.title = title_size),
+  insect_b2_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), plot.title = title_size) + ylab(''),
   ncol = 2,
   rel_widths = rel_widths
 )
@@ -1034,7 +1034,7 @@ row_turnover1 = cowplot::plot_grid(
 row_turnover2 = cowplot::plot_grid(
   
   plant_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
-  plant2_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), plot.title = title_size),
+  plant2_turnover + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(), plot.title = title_size) + ylab(''),
   ncol = 2,
   rel_widths = rel_widths
 )
@@ -1042,7 +1042,7 @@ row_turnover2 = cowplot::plot_grid(
 row_turnover3 = cowplot::plot_grid(
   
   bird_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = label_size, legend.position = 'none', plot.title = title_size), 
-  bird2_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = element_blank(), plot.title = title_size),
+  bird2_turnover + theme(axis.title.x = element_blank(), axis.text.x = label_size, axis.text.y = element_blank(), plot.title = title_size) + ylab(''),
   ncol = 2,
   rel_widths = rel_widths
 )
