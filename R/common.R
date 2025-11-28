@@ -47,6 +47,7 @@ include_grouped_taxa = function(insect_df) {
 to_presence_dataframe = function(presence_data) {
   presence_data %>% dplyr::mutate(present = T) %>% pivot_wider(id_cols = title, names_from = species, values_from = present, values_fill = F)
 }
+
 to_presence_as_num_dataframe = function(presence_data) {
   presence_data %>% dplyr::mutate(present = 1) %>% pivot_wider(id_cols = title, names_from = species, values_from = present, values_fill = 0)
 }
@@ -110,7 +111,8 @@ fill_scale = function(clusters_with_colours) {
     values = setNames(clusters_with_colours$colour, clusters_with_colours$cluster_name),
     name = "Habitat class",
     na.value = "white",
-    na.translate = FALSE
+    na.translate = FALSE,
+    breaks  = clusters_with_colours$cluster_name
   )
 }
 
@@ -119,6 +121,11 @@ colour_scale = function(clusters_with_colours) {
     values = setNames(clusters_with_colours$colour, clusters_with_colours$cluster_name),
     name = "Habitat class",
     na.value = "white",
-    na.translate = FALSE
+    na.translate = FALSE,
+    breaks  = clusters_with_colours$cluster_name
   )
+}
+
+to_ndvi = function(df) {
+  df %>% dplyr::select(title, ndvi) %>% rename('plot_id' = title)
 }

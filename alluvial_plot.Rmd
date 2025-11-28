@@ -23,9 +23,12 @@ row_to_df = function(x) {
   )
 }
 
-insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
+bird_clusters = map_dfr(bird_cluster_json, row_to_df) %>% dplyr::select(cluster_id, cluster_name)
+insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df) %>% dplyr::select(cluster_id, cluster_name)
 insect_plant_clusters
 ```
+
+
 
 ```{r}
 plots_in_cluster = function(cluster_json, cluster_id) {
@@ -43,18 +46,44 @@ plots_in_cluster_birds = function(cluster_id) plots_in_cluster(bird_cluster_json
 plots_in_cluster_insect_plants(8)
 ```
 
+
 ```{r}
-insect_plants_plots = map_dfr(0:9, plots_in_cluster_insect_plants) %>% left_join(insect_plant_clusters, by = 'cluster_id')
+insect_plants_plots = map_dfr(0:9, plots_in_cluster_insect_plants) %>% left_join(insect_plant_clusters, by = 'cluster_id') %>% rename('plot_id' = plots)
 insect_plants_plots
-```
-```{r}
-bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>% left_join(bird_clusters, by = 'cluster_id')
-bird_plots
 ```
 
 ```{r}
-plots = insect_plants_plots %>% rename('insect_plants_cluster_name' = cluster_name) %>% dplyr::select(plots, insect_plants_cluster_name) %>% 
-  left_join(bird_plots %>% rename('birds_cluster_name' = cluster_name) %>% dplyr::select(plots, birds_cluster_name), by = 'plots')
+bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>% left_join(bird_clusters, by = 'cluster_id') %>% rename('plot_id' = plots)
+bird_plots
+```
+
+Order clusters by NDVI
+```{r}
+bird_clusters = bird_plots %>% 
+  left_join(read_input_csv(BIRD_PREDICTORS) %>% to_ndvi()) %>% 
+  group_by(cluster_name) %>% 
+  summarise(avg_ndvi = mean(ndvi)) %>%
+  left_join(bird_clusters) %>%
+  arrange(avg_ndvi)
+bird_clusters
+```
+
+```{r}
+insect_plant_clusters = insect_plants_plots %>% 
+  left_join(read_input_csv(INSECT_PLANT_PREDICTORS) %>% to_ndvi()) %>% 
+  group_by(cluster_name) %>% 
+  summarise(avg_ndvi = mean(ndvi)) %>%
+  left_join(insect_plant_clusters) %>%
+  arrange(avg_ndvi)
+insect_plant_clusters
+```
+
+```{r}
+plots = insect_plants_plots %>% left_join(insect_plant_clusters) %>% rename('insect_plants_cluster_name' = cluster_name, 'insect_plants_ndvi' = avg_ndvi) %>% 
+  dplyr::select(plot_id, insect_plants_cluster_name, insect_plants_ndvi) %>% 
+  left_join(bird_plots %>% left_join(bird_clusters) %>% rename('birds_cluster_name' = cluster_name, 'birds_ndvi' = avg_ndvi) %>% dplyr::select(plot_id, birds_cluster_name, birds_ndvi)) %>%
+  arrange(insect_plants_ndvi, birds_ndvi) %>%
+  dplyr::select(plot_id, insect_plants_cluster_name, birds_cluster_name)
 plots
 ```
 
@@ -82,7 +111,7 @@ ggplot(
   aes(
     x = scale,
     stratum = cluster,
-    alluvium = plots,   # one flow per plot
+    alluvium = plot_id,   # one flow per plot
     y = 1
   )
 ) +
@@ -111,7 +140,20 @@ ggplot(
 # Count how many plots move from each cluster pair
 flows =
   plots %>%
-  count(insect_plants_cluster_name, birds_cluster_name, name = "n")
+    count(insect_plants_cluster_name, birds_cluster_name, name = "n") %>%
+    left_join(insect_plant_clusters %>% dplyr::select(cluster_name, avg_ndvi) %>% rename('insect_ndvi' = avg_ndvi, 'insect_plants_cluster_name' = cluster_name)) %>%
+    left_join(bird_clusters %>% dplyr::select(cluster_name, avg_ndvi) %>% rename('bird_ndvi' = avg_ndvi, 'birds_cluster_name' = cluster_name)) %>%
+    arrange(insect_ndvi, bird_ndvi) %>%
+    mutate(
+      # left axis ordered by insect_ndvi
+      insect_plants_cluster_name =
+        fct_reorder(insect_plants_cluster_name, insect_ndvi),
+
+      # right axis ordered by bird_ndvi
+      birds_cluster_name =
+        fct_reorder(birds_cluster_name, bird_ndvi)
+    )
+
 
 ggplot(flows,
        aes(
@@ -120,8 +162,8 @@ ggplot(flows,
          y = n
        )) +
   geom_alluvium(aes(fill = insect_plants_cluster_name),
-                width = 0, alpha = 0.7) +
-  geom_stratum(width = 0.4) +
+                width = 0, alpha = 0.5) +
+  geom_stratum(width = 0.5) +
   geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 2) +
   scale_x_discrete(
     limits = c("20 x 20 m Cluster", "120 x 120 m Cluster"),

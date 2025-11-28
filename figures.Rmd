@@ -42,13 +42,6 @@ bird_clusters
 ```
 
 
-```{r}
-insect_plant_clusters_scale_fill_manual_cluster = fill_scale(insect_plant_clusters)
-insect_plant_clusters_scale_colour_manual_cluster = colour_scale(insect_plant_clusters)
-bird_clusters_scale_fill_manual_cluster = fill_scale(bird_clusters)
-bird_clusters_scale_colour_manual_cluster = colour_scale(bird_clusters)
-```
-
 # Clusters
 ```{r}
 plots_in_cluster = function(cluster_json, cluster_id) {
@@ -78,6 +71,37 @@ bird_plots = map_dfr(0:9, plots_in_cluster_birds) %>%
   dplyr::select(plots, cluster_name) %>% 
   rename(plot_id = plots, cluster_id = cluster_name)
 bird_plots
+```
+Order clusters by NDVI
+```{r}
+bird_clusters = bird_plots %>% 
+  left_join(read_input_csv(BIRD_PREDICTORS) %>% to_ndvi()) %>% 
+  rename('cluster_name' = cluster_id) %>%
+  group_by(cluster_name) %>% 
+  summarise(avg_ndvi = mean(ndvi)) %>%
+  left_join(bird_clusters) %>%
+  arrange(avg_ndvi)
+bird_clusters
+```
+
+
+```{r}
+insect_plant_clusters = insect_plants_plots %>% 
+  left_join(read_input_csv(INSECT_PLANT_PREDICTORS) %>% to_ndvi()) %>% 
+  rename('cluster_name' = cluster_id) %>%
+  group_by(cluster_name) %>% 
+  summarise(avg_ndvi = mean(ndvi)) %>%
+  left_join(insect_plant_clusters) %>%
+  arrange(avg_ndvi)
+insect_plant_clusters
+```
+
+Create palettes
+```{r}
+insect_plant_clusters_scale_fill_manual_cluster = fill_scale(insect_plant_clusters)
+insect_plant_clusters_scale_colour_manual_cluster = colour_scale(insect_plant_clusters)
+bird_clusters_scale_fill_manual_cluster = fill_scale(bird_clusters)
+bird_clusters_scale_colour_manual_cluster = colour_scale(bird_clusters)
 ```
 
 ## 20 x 20 m Habitat
