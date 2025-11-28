@@ -200,8 +200,7 @@ show_image = function(plot_id) {
   }
 }
 
-insect_plant_cluster_info = insect_plant_clusters %>%
-  arrange(cluster_name)  # optional, so tiles go in ID order
+insect_plant_cluster_info = insect_plant_clusters
 
 make_cluster_tile = function(cluster_row) {
   # coloured background
@@ -238,8 +237,7 @@ bird_cluster_map_plot
 ```
 
 ```{r}
-bird_cluster_info = bird_clusters %>%
-  arrange(cluster_name)  # optional, so tiles go in ID order
+bird_cluster_info = bird_clusters
 
 bird_tiles = lapply(seq_len(nrow(bird_cluster_info)), function(i) {
   make_cluster_tile(bird_cluster_info[i, ])

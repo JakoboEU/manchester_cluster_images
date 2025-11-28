@@ -6,8 +6,6 @@ library(tibble)
 library(purrr)
 library(tidyverse)
 
-IMAGE_DIRECTORY="/Users/jamese.richardson/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
-
 INPUT_DIR = 'input'
 
 INSECT_PLANT_CLUSTERS = 'insect-plant-clusters.json'

@@ -1,5 +1,7 @@
 EXTERNAL_ROOT = '~/Dropbox/PhD/Manchester'
 
+IMAGE_DIRECTORY="/Users/james/Dropbox/PhD/Manchester/Survey_Results/survey_site_images/"
+
 to_external_location = function(file) {
   paste(EXTERNAL_ROOT, file, sep = '/')
 }
