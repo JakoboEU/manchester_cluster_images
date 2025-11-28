@@ -9,6 +9,7 @@ source("R/externals.R", local = knitr::knit_global())
 library(spdep)
 library(sf)
 ```
+
 # Plots to clusters
 ```{r}
 insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
@@ -22,8 +23,8 @@ row_to_df = function(x) {
   )
 }
 
-insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df)
-bird_clusters = map_dfr(bird_cluster_json, row_to_df)
+insect_plant_clusters = map_dfr(insect_plant_cluster_json, row_to_df) %>% append_insect_plant_palette()
+bird_clusters = map_dfr(bird_cluster_json, row_to_df) %>% append_bird_palette(insect_plant_clusters)
 ```
 
 ```{r}
@@ -70,8 +71,17 @@ survey_squares
 coords = st_coordinates(st_centroid(survey_squares))
 ```
 
+# Nearest Neigbour and Spatial Clustering
 ```{r}
-nb_local = dnearneigh(coords, 0, 500)
+local_scale = 500
+local_scale_subtitle = 'Nearest Neighbour within 500 m'
+
+broad_scale = 2500
+broad_scale_subtitle = 'Nearest Neighbour within 2.5 km'
+```
+
+```{r}
+nb_local = dnearneigh(coords, 0, local_scale)
 nb_local
 ```
 
@@ -81,28 +91,102 @@ lw_local
 ```
 
 ```{r}
-nb_broad = dnearneigh(coords, 0, 2500)
+nb_broad = dnearneigh(coords, 0, broad_scale)
 lw_broad = nb2listw(nb_broad, style = "W")
 lw_broad
 ```
 
+```{r}
+insect_plant_clusters_scale_fill_manual_cluster = fill_scale(insect_plant_clusters)
+insect_plant_clusters_scale_colour_manual_cluster = colour_scale(insect_plant_clusters)
+bird_clusters_scale_fill_manual_cluster = fill_scale(bird_clusters)
+bird_clusters_scale_colour_manual_cluster = colour_scale(bird_clusters)
+```
 
 ```{r}
-jc_20m_local = joincount.multi(insect_plants_plots$cluster_id, lw_local)
+to_results_df = function(df) {
+  df %>%
+  as.data.frame() %>%
+  rownames_to_column("pair") %>%
+  rename(
+    joincount = Joincount,
+    expected  = Expected,
+    variance  = Variance,
+    z_value   = `z-value`
+  ) %>%
+  mutate(
+    # classify pair types
+    pair_type = case_when(
+      pair == "Jtot" ~ "different (all)",
+      sub(":.*", "", pair) == sub(".*:", "", pair) ~ "same",
+      TRUE ~ "different"
+    ),
+    first_pair = gsub(':.*', '', pair)
+  )
+}
+```
+
+```{r}
+jc_20m_local = joincount.multi(insect_plants_plots$cluster_id, lw_local) %>% to_results_df()
 jc_20m_local
 ```
 
 ```{r}
-jc_20m_broad = joincount.multi(insect_plants_plots$cluster_id, lw_broad)
+plot_spatial_correlation = function(title, subtitle, jc_local, fill_scale) {
+  jc_same = jc_local %>% filter(pair_type == "same") %>% mutate(x = reorder(first_pair, z_value))
+
+  ggplot(jc_same, aes(x = x, y = z_value, fill = x)) +
+    geom_col() +
+    coord_flip() +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_hline(yintercept = 1.96, linetype = "dotted") +
+    geom_hline(yintercept = -1.96, linetype = "dotted") +
+    labs(
+      x = "Habitat (same-colour joins)",
+      y = "z-value (clustering vs random)",
+      title = title,
+      subtitle = subtitle
+    ) +
+    fill_scale +
+    theme_minimal() +
+    theme(legend.position = 'none')
+}
+
+```
+
+```{r}
+plot_spatial_correlation('Local spatial clustering of 20 x 20 m Habitat', local_scale_subtitle, jc_20m_local, insect_plant_clusters_scale_fill_manual_cluster)
+ggsave('output/figure_om_spatial_local_20m_plots.jpg')
+```
+
+```{r}
+jc_20m_broad = joincount.multi(insect_plants_plots$cluster_id, lw_broad) %>% to_results_df()
 jc_20m_broad
 ```
 
 ```{r}
-jc_120m_local = joincount.multi(bird_plots$cluster_id, lw_local)
+plot_spatial_correlation('Broad spatial clustering of 20 x 20 m Habitat', broad_scale_subtitle, jc_20m_broad, insect_plant_clusters_scale_fill_manual_cluster)
+ggsave('output/figure_om_spatial_broad_20m_plots.jpg')
+```
+
+```{r}
+jc_120m_local = joincount.multi(bird_plots$cluster_id, lw_local) %>% to_results_df()
 jc_120m_local
 ```
 
 ```{r}
-jc_120m_broad = joincount.multi(bird_plots$cluster_id, lw_broad)
+plot_spatial_correlation('Local spatial clustering of 120 x 120 m Habitat', local_scale_subtitle, jc_120m_local, bird_clusters_scale_fill_manual_cluster)
+ggsave('output/figure_om_spatial_local_120m_plots.jpg')
+```
+
+```{r}
+jc_120m_broad = joincount.multi(bird_plots$cluster_id, lw_broad) %>% to_results_df()
 jc_120m_broad
 ```
+
+```{r}
+plot_spatial_correlation('Broad spatial clustering of 120 x 120 m Habitat', broad_scale_subtitle, jc_120m_broad, bird_clusters_scale_fill_manual_cluster)
+ggsave('output/figure_om_spatial_broad_120m_plots.jpg')
+```
+
+
