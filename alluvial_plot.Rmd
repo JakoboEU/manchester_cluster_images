@@ -7,8 +7,10 @@ output: html_notebook
 source("R/common.R", local = knitr::knit_global())
 library(ggplot2)
 library(ggalluvial)
+library(mclust)
 ```
 
+# Data Prep
 ```{r}
 insect_plant_cluster_json = read_input_json(INSECT_PLANT_CLUSTERS)
 bird_cluster_json = read_input_json(BIRD_CLUSTERS)
@@ -86,7 +88,7 @@ plots = insect_plants_plots %>% left_join(insect_plant_clusters) %>% rename('ins
   dplyr::select(plot_id, insect_plants_cluster_name, birds_cluster_name)
 plots
 ```
-
+# Plots
 
 ```{r}
 # Long format for ggalluvial
@@ -140,7 +142,7 @@ ggplot(
 # Count how many plots move from each cluster pair
 flows =
   plots %>%
-    count(insect_plants_cluster_name, birds_cluster_name, name = "n") %>%
+    dplyr::count(insect_plants_cluster_name, birds_cluster_name, name = "n") %>%
     left_join(insect_plant_clusters %>% dplyr::select(cluster_name, avg_ndvi) %>% rename('insect_ndvi' = avg_ndvi, 'insect_plants_cluster_name' = cluster_name)) %>%
     left_join(bird_clusters %>% dplyr::select(cluster_name, avg_ndvi) %>% rename('bird_ndvi' = avg_ndvi, 'birds_cluster_name' = cluster_name)) %>%
     arrange(insect_ndvi, bird_ndvi) %>%
@@ -181,3 +183,146 @@ ggplot(flows,
   guides(fill = guide_legend(nrow = 3, byrow = TRUE))
 ggsave('output/figure_2_plot_movement_between_clusters.jpg', width = 2500, height = 1000, units = 'px')
 ```
+
+# Cluster Stability
+
+## Global: how similar are the two partitions? (Adjusted Rand index + permutation test)
+
+Use Adjusted Rand Index (ARI) as an overall measure of “same clustering”, then test if it’s greater than expected by chance.
+
+```{r}
+ari_obs = adjustedRandIndex(plots$insect_plants_cluster_name, plots$birds_cluster_name)
+ari_obs
+```
+
+ari_obs near 1 → very similar clusterings, near 0 → no more similar than random.
+
+```{r}
+set.seed(1)
+n_perm = 9999
+ari_null = numeric(n_perm)
+
+for (i in seq_len(n_perm)) {
+  ari_null[i] = adjustedRandIndex(plots$insect_plants_cluster_name, sample(plots$birds_cluster_name))
+}
+
+p_val = mean(ari_null >= ari_obs)
+p_val
+```
+
+
+## Flow matrix + χ² test + “who gains/loses?” via residuals
+
+Build the contingency table of flows from 20x20 → 120x120 and analyse it.
+
+
+```{r}
+flow_table =
+  plots %>%
+  dplyr::count(insect_plants_cluster_name, birds_cluster_name) %>%
+  tidyr::pivot_wider(
+    names_from = birds_cluster_name,
+    values_from = n,
+    values_fill = 0
+  )
+
+flow_mat = as.matrix(flow_table[ , -1])
+rownames(flow_mat) = flow_table$insect_plants_cluster_name
+
+# Chi-squared test of independence
+chi_res = chisq.test(flow_mat)
+
+chi_res$statistic   # overall X^2
+chi_res$p.value     # p-value
+```
+
+If p is small, the detailed pattern of flows is not just random mixing between k=3 and k=9 clusters.
+
+The real magic is in the standardised residuals:
+```{r}
+resid_mat = chi_res$stdres  # same dimensions as flow_mat
+resid_mat
+```
+Positive residual: more plots than expected flow from that 20x20 → 120x120 combination.
+
+Negative residual: fewer plots than expected.
+
+### Heatmap
+```{r}
+resid_df =
+  as.data.frame(as.table(resid_mat)) %>%
+  rename(insect_plants_cluster_name = Var1, birds_cluster_name = Var2, std_resid = Freq) %>%
+  left_join(insect_plant_clusters %>% dplyr::select(cluster_name, avg_ndvi) %>% rename('insect_ndvi' = avg_ndvi, 'insect_plants_cluster_name' = cluster_name)) %>%
+  left_join(bird_clusters %>% dplyr::select(cluster_name, avg_ndvi) %>% rename('bird_ndvi' = avg_ndvi, 'birds_cluster_name' = cluster_name)) %>%
+  mutate(
+    # left axis ordered by insect_ndvi
+    insect_plants_cluster_name =
+      fct_reorder(insect_plants_cluster_name, insect_ndvi),
+
+    # right axis ordered by bird_ndvi
+    birds_cluster_name =
+      fct_reorder(birds_cluster_name, desc(bird_ndvi))
+  )
+
+ggplot(resid_df, aes(x = insect_plants_cluster_name, y = birds_cluster_name, fill = std_resid)) +
+  geom_tile() +
+  scale_fill_gradient2(mid = 0) +
+  labs(x = "20 x 20 m Cluster", y = "120 x 120 m Cluster",
+       fill = "Std. residual") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
+  labs(title = "Transitions from 20 x 20 m habitat clusters\nto120 x 120 m habitat clusters", subtitle = "(standardised χ² residuals)")
+ggsave('output/figure_on_cluster_transistions.jpg', width = 2000, height = 2000, units = 'px')
+```
+
+## Per-cluster “stability”: who keeps vs loses plots?
+
+Here you look at whether each named cluster is stable in identity for individual plots.
+
+First define a logical “stays the same habitat” (only works because your cluster names are the same at both scales):
+```{r}
+clusters =
+  plots %>%
+  mutate(
+    same_cluster = insect_plants_cluster_name == birds_cluster_name   # TRUE/FALSE per plot
+  )
+```
+
+```{r}
+stab_by_cluster =
+  clusters %>%
+  group_by(insect_plants_cluster_name) %>%
+  summarise(
+    n_plots = n(),
+    n_same  = sum(same_cluster),
+    p_same  = n_same / n_plots
+  )
+
+stab_by_cluster
+```
+That gives you:
+
+Retention rate p_same per 20x20 habitat class: proportion of plots that are still in that same habitat label at 120x120
+
+You can add binomial CIs:
+```{r}
+stab_by_cluster =
+  stab_by_cluster %>%
+  rowwise() %>%
+  mutate(
+    lower = binom.test(n_same, n_plots)$conf.int[1],
+    upper = binom.test(n_same, n_plots)$conf.int[2]
+  ) %>%
+  ungroup()
+stab_by_cluster
+```
+
+```{r}
+ggplot(stab_by_cluster, aes(x = insect_plants_cluster_name, y = p_same)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  coord_flip() +
+  labs(x = "20 x 20 m Cluster", y = "Proportion of plots with same cluster at 120 x 120 m") +
+  theme_minimal()
+```
+
+
