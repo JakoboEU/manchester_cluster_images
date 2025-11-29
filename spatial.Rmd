@@ -71,6 +71,21 @@ survey_squares
 coords = st_coordinates(st_centroid(survey_squares))
 ```
 
+# Coords to cluster
+```{r}
+insect_plants_plots_coords = insect_plants_plots %>% arrange(plot_id)
+insect_plants_plots_coords$x = coords[,1]
+insect_plants_plots_coords$y = coords[,2]
+insect_plants_plots_coords
+```
+
+```{r}
+bird_plots_coords = bird_plots %>% arrange(plot_id)
+bird_plots_coords$x = coords[,1]
+bird_plots_coords$y = coords[,2]
+bird_plots_coords
+```
+
 # Nearest Neigbour and Spatial Clustering
 ```{r}
 local_scale = 500
@@ -187,6 +202,71 @@ jc_120m_broad
 ```{r}
 plot_spatial_correlation('Broad spatial clustering of 120 x 120 m Habitat', broad_scale_subtitle, jc_120m_broad, bird_clusters_scale_fill_manual_cluster)
 ggsave('output/figure_om_spatial_broad_120m_plots.jpg')
+```
+
+# Density Plots
+```{r}
+m60_ringroad_shape = st_read(EXTERNAL_SHP_RINGROAD)
+
+
+ggplot() +
+  geom_sf(data = m60_ringroad_shape, fill = NA, colour = "darkblue", linewidth = 1) +
+  stat_density_2d(
+    data = insect_plants_plots_coords,
+    aes(
+      x = x, y = y,
+      fill  = cluster_id,
+      alpha = after_stat(..level..),
+      group = cluster_id
+    ),
+    geom        = "polygon",
+    contour_var = "ndensity",
+    bins        = 5
+  ) +
+  scale_alpha(range = c(0, 0.7), guide = "none") +
+  coord_sf() +
+  labs(
+    fill  = "Habitat cluster",
+    title = "Coloured density heat map of habitat clusters"
+  ) +
+  insect_plant_clusters_scale_fill_manual_cluster +
+  theme_minimal() +
+  theme(
+    axis.text  = element_blank(),
+    axis.title = element_blank()
+  )
+ggsave('output/figure_om_spatial_cluster_density_20m.jpg')
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = m60_ringroad_shape, fill = NA, colour = "darkblue", linewidth = 1) +
+  stat_density_2d(
+    data = bird_plots_coords,
+    aes(
+      x = x, y = y,
+      fill  = cluster_id,
+      alpha = after_stat(..level..),
+      group = cluster_id
+    ),
+    geom        = "polygon",
+    contour_var = "ndensity",
+    bins        = 5
+  ) +
+  scale_alpha(range = c(0, 0.7), guide = "none") +
+  coord_sf() +
+  labs(
+    fill  = "Habitat cluster",
+    title = "Coloured density heat map of habitat clusters"
+  ) +
+  insect_plant_clusters_scale_fill_manual_cluster +
+  theme_minimal() +
+  theme(
+    axis.text  = element_blank(),
+    axis.title = element_blank()
+  )
+ggsave('output/figure_om_spatial_cluster_density_120m.jpg')
+```
 ```
 
 
